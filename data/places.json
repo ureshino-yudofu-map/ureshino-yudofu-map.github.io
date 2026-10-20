@@ -105,7 +105,8 @@
     "note": "朝から開いている昭和の雰囲気の町食堂で、湯豆腐を600円の単品として出す。口コミではちゃんぽんと一緒に朝ごはんとして頼まれている。",
     "source_url": "https://tabelog.com/en/saga/A4104/A410401/41003679/dtlrvwlst/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "朝から開く町食堂の、600円の湯豆腐"
   },
   {
    "id": "ariake",
@@ -233,7 +234,8 @@
     "note": "豊玉姫神社の隣にある居酒屋・寿司店で、嬉野の郷土料理として温泉湯豆腐をセットで出す。店は秘伝のごまだれで食べるのを勧めている。",
     "source_url": "https://hitosara.com/0004105868/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "秘伝のごまだれで味わう郷土の湯豆腐セット"
   },
   {
    "id": "onsen-shokudo",
@@ -419,7 +421,8 @@
     "note": "岩屋川内の町の食堂で、温泉の湯でやわらかくした豆腐を胡麻だれで食べる温泉湯豆腐定食を出す。定食のご飯はもち麦入りの麦ご飯だ。定食が出せない日でも湯豆腐は単品で頼めたという訪問記があり、煮汁まで飲みたくなる味だったと書かれている。",
     "source_url": "http://yayoicafe.jp/blog-entry-461.html"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "ごまだれ×もち麦ごはんの、やさしい定食"
   },
   {
    "id": "hirakawaya-ureshino",
@@ -663,7 +666,8 @@
     "note": "卓上のIHコンロで豆腐を温泉水の調理水から炊き、10分ほどで汁が白く濁れば食べ頃になる。最初は何もつけず、次にすりごま入りの特製ごまだれ、続けてポン酢と味を変える。残ったスープは野菜を足して鍋にし、ご飯で雑炊にして締める。",
     "source_url": "https://rurubu.jp/andmore/article/17434"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "そのまま→ごまだれ→ポン酢、〆は雑炊まで"
   },
   {
    "id": "shizu",
@@ -767,7 +771,8 @@
     "note": "いけすのある岩屋川内の食事処で、豆腐と一緒に白菜・しめじ・豚肉などを煮る具だくさんの温泉湯どうふを出す。たれは胡麻醤油ではなく生姜醤油で、さっぱりと食べる。海老・しいたけ・牡蠣などを足した上位版の「長寿湯」もあった。",
     "source_url": "https://www.tabirai.net/sightseeing/column/0002551.aspx"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "野菜たっぷり、生姜醤油でさっぱりの具だくさん鍋"
   },
   {
    "id": "shinpachi",
@@ -898,7 +903,8 @@
     "note": "バスセンター近くの寿司店で、昼は握りかちらしに温泉湯豆腐を付けたセットを出す。湯豆腐は白菜と一緒に土鍋で出され、汁は白く濁っている。たれについては、胡麻だれと書いた口コミと甘めの醤油だれと書いた口コミがある。",
     "source_url": "https://4travel.jp/dm_shisetsu/11279889"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "握りと土鍋の湯豆腐、寿司屋のランチセット"
   },
   {
    "id": "suzushiro",
@@ -1023,7 +1029,8 @@
     "note": "地産地消の創作和食店で、昼は温泉どうふと茶美豚のしゃぶしゃぶを合わせたランチを出す。口コミでは肉や野菜の量が多く、豆腐はあまり溶け崩れないと書かれている。",
     "source_url": "https://tabelog.com/saga/A4104/A410401/41005083/dtlrvwlst/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "温泉どうふと茶美豚しゃぶしゃぶの地産地消ランチ"
   },
   {
    "id": "sengoku",
@@ -1117,7 +1124,8 @@
     "note": "温泉街の路地裏にある焼き鳥店で、温泉湯豆腐も頼める。豆腐を食べ終えた鍋にうどんを入れて温泉うどんにし、一つの鍋を二通りに楽しめる。",
     "source_url": "https://www.yukoyuko.net/onsen/spot/s0002839"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "湯豆腐のあとは温泉うどん、1つの鍋で2度おいしい"
   },
   {
    "id": "yokocho",
@@ -1356,7 +1364,8 @@
     "note": "自家製の木綿豆腐を、味の付いた温泉水のスープで煮る。まずは何もつけずに豆腐とスープを味わい、ねぎや生姜を鍋に入れて味の変化を楽しむ。特製だれは主にえびや野菜に付けるが、豆腐に付けてもよい。定食は寄せ湯どうふ、特選は魚ちり湯どうふで出る。",
     "source_url": "https://yococho.com/archives/615"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "発祥の店。まずはスープごと、そのままで"
   },
   {
    "id": "tosho",
@@ -1571,7 +1580,8 @@
     "note": "藤川豆腐店の工場横にある直営の食事処で、隣で作った出来立ての豆腐を温泉湯どうふにして出す。鍋は固形燃料で温める形式で、野菜も早めに入れて一緒に煮るよう勧められる。朝の温泉湯豆腐定食のほか、湯葉刺し・茶碗蒸し・豆乳もちが付く十笑御膳もあり、豆腐はおかわりできる。",
     "source_url": "https://www.oomuraya.co.jp/kurashikanko/fujikawa-tofu/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "豆腐屋の隣でつくりたて。豆腐はおかわり自由"
   },
   {
    "id": "shun",
@@ -1670,7 +1680,8 @@
     "note": "元は鮮魚店だった海鮮居酒屋で、温泉湯豆腐を一人前の単品で注文できる。店自慢の付けダレで食べ、食後は残った鍋で雑炊を作ってもらう〆もある。湯豆腐と雑炊をセットで頼んだという口コミも見られる。",
     "source_url": "https://omichanblog.com/%E4%BD%90%E8%B3%80%E3%83%BB%E5%AC%89%E9%87%8E%E6%B8%A9%E6%B3%89%E3%81%A7%E6%96%B0%E9%AE%AE%E3%81%AA%E9%AD%9A%E4%BB%8B%E3%82%92%E3%81%84%E3%81%9F%E3%81%A0%E3%81%8F%EF%BC%81%E3%80%90%E5%B1%85%E9%85%92/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "自慢の付けダレで。〆の雑炊まで楽しむ海鮮居酒屋"
   },
   {
    "id": "maneki",
@@ -1776,7 +1787,8 @@
     "note": "寿司店で、昼に温泉湯豆腐を出す。濃厚なごまだれが基本で、ポン酢や醤油でも味わえると口コミにある。夜はコースの一品として湯豆腐が出ることもある。",
     "source_url": "https://tabelog.com/saga/A4104/A410401/41002823/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "寿司屋の昼の湯豆腐。濃厚ごまだれで"
   },
   {
    "id": "musashi",
@@ -1884,7 +1896,8 @@
     "note": "嬉野温泉湯豆腐を付けた御膳が中心の和食店で、湯豆腐付きの御膳は4パターンあり、天ぷらや刺身と組み合わせて頼める。最上位は極 武蔵御膳だ。湯豆腐の量は控えめだったという口コミもある。",
     "source_url": "https://www.hotpepper.jp/strJ004623000/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "天ぷら・お刺身と選べる湯豆腐御膳"
   },
   {
    "id": "yurari",
@@ -1983,7 +1996,8 @@
     "yakumi": [],
     "note": "",
     "source_url": ""
-   }
+   },
+   "catch": "地元の味がそろう、隠れ家的な食事処"
   },
   {
    "id": "rakuya",
@@ -2074,7 +2088,8 @@
     "note": "古民家カフェで、鍋の湯豆腐ではなく嬉野の湯豆腐をオムライスに取り入れた期間限定メニューを出していた。取材時は湯豆腐と湯葉をのせて出汁をかけた和風オムライスで、薬膳と合わせた限定品も紹介されている。提供の有無は時期による。",
     "source_url": "https://www.asobo-saga.jp/articles/detail/eaa8821b-6ce9-4413-b3d1-7e69d41fd381"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "湯豆腐と湯葉をのせた和風オムライス（期間限定）"
   },
   {
    "id": "rikyu",
@@ -2298,7 +2313,8 @@
     "note": "和多屋別荘館内にある全席半個室の日本料理店。温泉湯豆腐を軸に懐石や天ぷらも出し、個室で湯豆腐を火にかけて仕上げる。豆腐は嬉野の水と大豆で仕込む福田とうふ店のものを使い、宿泊者の夕食では冷や汁風に仕立てた一品も出る。",
     "source_url": "https://travel.rakuten.co.jp/mytrip/howto/wataya-ureshino-guide"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "全席半個室。お部屋で仕上げる湯豆腐懐石"
   },
   {
    "id": "risoan",
@@ -2428,7 +2444,8 @@
     "note": "和多屋別荘内の佐賀牛レストラン。温泉湯豆腐を煮た鍋で佐賀牛や若楠豚をしゃぶしゃぶにする「湯どうふしゃぶしゃぶ」が看板。口コミでは、湯豆腐は胡麻だれで食べ、豆腐は鍋の中ですぐ崩れるほど柔らかいとされる。",
     "source_url": "https://retty.me/area/PRE41/ARE504/SUB50402/100000872220/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "湯豆腐の鍋で佐賀牛をしゃぶしゃぶ"
   },
   {
    "id": "warakado",
@@ -2571,7 +2588,8 @@
     "note": "嬉野温泉街にある食事処兼カフェ。温泉水で煮て豆腐が鍋の中でとろけていく温泉湯豆腐を単品でも定食でも頼め、鍋には大根などの野菜も添えられる。",
     "source_url": "https://tabelog.com/saga/A4104/A410401/41006201/dtlrvwlst/B422174389/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "鍋の中でとろけていく、温泉街の湯豆腐"
   },
   {
    "id": "ikkyusou",
@@ -2707,7 +2725,8 @@
     "note": "朝食で嬉野名物の温泉湯豆腐を出す小さな旅館。予約サイトの宿ページでは、温泉湯豆腐の写真を嬉野温泉名物として掲げている。",
     "source_url": "https://www.jalan.net/yad320331/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "小さな宿の、名物湯豆腐の朝ごはん"
   },
   {
    "id": "irifune",
@@ -2859,7 +2878,8 @@
     "note": "和朝食に、温泉水で煮た湯豆腐が付く。朝はこの和食のほかに、アサイーボウルなどを並べた洋風の朝食も選べる。",
     "source_url": "https://www.jalan.net/yad321174"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "湯豆腐の和朝食か、アサイーボウルの洋朝食か"
   },
   {
    "id": "hachijuhachi",
@@ -2977,7 +2997,8 @@
     "note": "朝食のセットメニューに、佐賀県産大豆フクユタカを100％使った宿オリジナルの温泉湯豆腐が入る。朝食は和食か洋食を選べ、開始は8時か9時から選ぶ。大型連休や年末年始などは和食のみの日もある。",
     "source_url": "https://www.ureshino88.jp/cuisine/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "佐賀県産大豆100%、宿オリジナルの湯豆腐朝食"
   },
   {
    "id": "motoyu",
@@ -3138,7 +3159,8 @@
     "note": "朝食に、宿の源泉を使って煮る温泉湯どうふが付く。口コミでは釜飯や焼き魚と一緒に並び、ご飯は白飯か茶粥から選べたという。",
     "source_url": "https://4travel.jp/dm_hotel-10052430"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "宿の源泉で煮る湯豆腐と、選べる茶粥"
   },
   {
    "id": "ureshinokan",
@@ -3305,7 +3327,8 @@
     "note": "朝夕ともバイキング形式の大型ホテル。口コミによると、夕食会場には嬉野名物の湯豆腐が『ご当地』料理の一つとして並ぶ。",
     "source_url": "https://4travel.jp/dm_hotel-11369384/tips"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "バイキングで気軽に、ご当地の湯豆腐"
   },
   {
    "id": "oomuraya",
@@ -3528,7 +3551,8 @@
     "note": "朝食の中心に、とろける食感の嬉野名物・温泉湯豆腐を据える老舗旅館。口コミでは朝の湯豆腐と嬉野茶が印象に残ったという声がある。",
     "source_url": "https://icotto.jp/hotels/1770"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "とろける湯豆腐と嬉野茶の朝ごはん"
   },
   {
    "id": "kasuien",
@@ -3685,7 +3709,8 @@
     "note": "朝食は嬉野名物の温泉湯豆腐が付く和定食で出す。口コミでは小鉢の品数が多く、ご飯のおかわりも無料だったという。",
     "source_url": "https://www.cocolocala.jp/hotels/23540"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "小鉢たっぷり、湯豆腐つきの和朝食"
   },
   {
    "id": "kisenkan",
@@ -3843,7 +3868,8 @@
     "note": "朝食に名物の温泉湯豆腐を出し、宿の自家源泉の湯で炊く。朝食は佐賀の食材を使った手作りの料理で品数が多く、7時30分と8時に始まる2部制。朝夕とも個室か半個室で食べる。",
     "source_url": "https://www.kisenkan.com/concept/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "自家源泉で炊く湯豆腐を、個室でゆっくり"
   },
   {
    "id": "kujaku",
@@ -3940,7 +3966,8 @@
     "note": "朝食は嬉野名物の温泉湯豆腐を中心にした品数の多い内容で、客室ではなく食事処で提供する。夕食なしの朝食付きプランでも、この湯豆腐の朝食がとれる。",
     "source_url": "https://reserve.489ban.net/client/kujaku/0/detail/857443"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "湯豆腐が主役の、品数たっぷり朝ごはん"
   },
   {
    "id": "koyokaku",
@@ -4098,7 +4125,8 @@
     "note": "朝食に嬉野名物の温泉湯豆腐が付く。宿の紹介では佐賀牛のステーキやすき焼きと並べて、温泉湯豆腐の雑炊も名物に挙げている。",
     "source_url": "https://reserve.489ban.net/client/koyokaku/0/detail/1298822"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "湯豆腐の雑炊も名物、佐賀牛の宿"
   },
   {
    "id": "kotan",
@@ -4202,7 +4230,8 @@
     "note": "夕食は、嬉野産大豆「ふくゆたか」の豆腐を使う温泉湯豆腐を主役にした豆腐会席。温泉水で煮て、とろけるような口当たりに仕上げる。朝食では豆乳の鍋から湯葉をすくって食べる。",
     "source_url": "https://goten-resort.jp/kotan-ureshino/cuisine/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "夜は豆腐会席、朝は湯葉をすくう豆乳鍋"
   },
   {
    "id": "kotobukiya",
@@ -4303,7 +4332,8 @@
     "yakumi": [],
     "note": "",
     "source_url": ""
-   }
+   },
+   "catch": "源泉かけ流しの岩風呂と貸切檜風呂の素泊まり宿"
   },
   {
    "id": "sansui",
@@ -4526,7 +4556,8 @@
     "note": "朝食は和洋のバイキングで、大正屋自家製の「とろける湯どうふ」が並ぶ。吟醸どうふやかご盛りどうふ、嬉野らしい茶粥や漬物もそろう。朝食の時間は7時30分から9時30分まで。",
     "source_url": "https://www.shiibasanso.com/meal/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "とろける湯どうふと茶粥のバイキング朝食"
   },
   {
    "id": "shoen",
@@ -4662,7 +4693,8 @@
     "note": "朝食は客室でとる部屋食で、嬉野温泉名物の温泉湯豆腐が付く。宿泊者の口コミでは、朝の湯豆腐の濃厚な味わいが好評だ。",
     "source_url": "https://www.jalan.net/yad323668/plan/plan00867959/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "お部屋で味わう、朝の湯豆腐"
   },
   {
    "id": "taishoya",
@@ -4899,7 +4931,8 @@
     "note": "朝食の和定食の主役で、自家製の豆腐を嬉野の温泉水で炊いて出す。煮るほど豆腐の角が溶けてとろりとした食感になる。そのままでも大豆の甘みを味わえ、ゴマ醤油や薬味で好みの味にもできる。ご飯は棚田米か嬉野茶の茶粥から選べ、湯豆腐をおかわりしたという口コミもある。",
     "source_url": "https://travel.rakuten.co.jp/mytrip/howto/taishoya-guide"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "自家製豆腐がとろり。茶粥と選べる朝ごはん"
   },
   {
    "id": "takasago",
@@ -5029,7 +5062,8 @@
     "note": "夕食の主役は、嬉野温泉の湯で炊く湯豆腐と佐賀産和牛のしゃぶしゃぶを合わせた鍋だ。口コミによれば朝食にも温泉湯豆腐が出て、たれを付けずにそのまま味わったという宿泊者もいる。",
     "source_url": "https://travel.rakuten.co.jp/HOTEL/28965/review.html"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "湯豆腐と佐賀産和牛しゃぶしゃぶの鍋が主役"
   },
   {
    "id": "hatsune",
@@ -5144,7 +5178,8 @@
     "note": "朝食に、嬉野名物の温泉豆腐を味わう和食御膳を出すプランがある。温泉の湯で煮た豆腐はとろりとした口当たりだと口コミで評されている。夕食の主役は佐賀県産牛の陶板焼きの会席だ。",
     "source_url": "https://hotel.travel.rakuten.co.jp/hotelinfo/plan/13775"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "朝は温泉豆腐の和食御膳"
   },
   {
    "id": "hamilton",
@@ -5272,7 +5307,8 @@
     "yakumi": [],
     "note": "",
     "source_url": ""
-   }
+   },
+   "catch": "洋風クラシックホテル"
   },
   {
    "id": "shikishima",
@@ -5413,7 +5449,8 @@
     "note": "朝食の和定食に温泉湯豆腐が付く。温泉の湯で煮るうちに、透き通っていた煮汁が白く濁り、豆乳のような風味に変わっていく様子が口コミで語られている。ごま醤油系のたれで食べ、そのたれのおいしさを推す宿泊者もいる。",
     "source_url": "https://tabelog.com/saga/A4104/A410401/41004245/dtlrvwlst/B357839414/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "煮汁が白く、豆乳のようになる朝の湯豆腐"
   },
   {
    "id": "hisago",
@@ -5523,7 +5560,8 @@
     "note": "朝食は小鉢を並べた御膳形式で、嬉野温泉名物の温泉湯豆腐が付く。家族で営む小さな宿の朝ごはんとして出される。",
     "source_url": "http://www.hisagoryokan.com/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "家族で営む宿の、湯豆腐つき朝ごはん"
   },
   {
    "id": "fairfield",
@@ -5610,7 +5648,8 @@
     "note": "館内にレストランはなく、予約制の朝食ボックスに温泉湯豆腐が入る。地元野菜の煮しめや嬉野茶の佃煮、地元産の米で炊いたご飯と一緒に詰め合わせていると紹介されている。",
     "source_url": "https://serai.jp/tour/1158715"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "地元の味を詰めた朝食ボックスに湯豆腐"
   },
   {
    "id": "hotel-sakura",
@@ -5734,7 +5773,8 @@
     "note": "1階の和風レストラン花月では、昼に嬉野名物の温泉湯豆腐を小鉢・蓋物・ご飯・香の物と組み合わせた御膳で出していた。温泉豆腐は胡麻だれにつけて食べる形で、口コミで好評だった。",
     "source_url": "https://tabelog.com/saga/A4104/A410401/41002827/dtlrvwlst/B421869287/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "胡麻だれで味わう湯豆腐御膳"
   },
   {
    "id": "seiryu",
@@ -6092,7 +6132,8 @@
     "note": "嬉野温泉の旅館。朝食に嬉野温泉の湯で炊くとろとろの湯豆腐が出て、しゃぶしゃぶも楽しめ、〆は雑炊にする。個室和食ダイニング「虚空蔵」の平日ランチでは湯豆腐コースや佐賀牛の湯豆腐しゃぶコースを選べる。",
     "source_url": "https://www.yoshidaya-web.com/ryokan/oneday/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "湯豆腐→しゃぶしゃぶ→雑炊の朝ごはん"
   },
   {
    "id": "riverpark",
@@ -6166,7 +6207,8 @@
     "yakumi": [],
     "note": "",
     "source_url": ""
-   }
+   },
+   "catch": "温泉街のビジネスホテル"
   },
   {
    "id": "wataya",
@@ -6365,7 +6407,8 @@
     "note": "嬉野温泉の老舗旅館。朝の和洋ビュッフェに温泉湯豆腐が並び、夕食には湯豆腐を煮た鍋で佐賀牛や若楠豚をしゃぶしゃぶにして、うどんや雑炊で締めるプランがある。豆腐は嬉野の水と大豆で仕込む福田とうふ店のものを使う。",
     "source_url": "https://travel.rakuten.co.jp/mytrip/howto/wataya-ureshino-guide"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "湯豆腐の鍋で佐賀牛しゃぶしゃぶ、老舗の大旅館"
   },
   {
    "id": "warakuen",
@@ -6562,7 +6605,8 @@
     "note": "嬉野茶をテーマにした旅館。朝食は嬉野産大豆ふくゆたか100%の豆腐を使う温泉湯豆腐が主役の和定食で、茶粥や茶酢、嬉野茶海苔佃煮など嬉野茶を使う品が並ぶ。胡麻坦々の小鍋仕立てにした温泉湯豆腐もある。",
     "source_url": "https://reserve.489ban.net/client/warakuen/0/detail/1177764"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "嬉野茶づくしの朝食と、胡麻坦々の湯豆腐"
   },
   {
    "id": "konomenosato",
@@ -6687,7 +6731,8 @@
     "yakumi": [],
     "note": "",
     "source_url": ""
-   }
+   },
+   "catch": "嬉野温泉どうふを通販で"
   },
   {
    "id": "hirakawaya-takeo",
@@ -6846,7 +6891,8 @@
     "note": "武雄にある豆腐店の本店。店で出す温泉湯豆腐御膳は、調理水で豆腐を煮て汁が白く濁れば食べ頃。胡麻だれ、ポン酢、出汁醤油のほか塩とオリーブオイルでも食べられ、残った汁で雑炊を作る。持ち帰りセットには胡麻だれ付き、ぽん酢付き、白だし付きなどがある。",
     "source_url": "https://www.sagatv.co.jp/kachiplus/media/archives/1663065"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "ごまだれ・ポン酢・塩とオリーブオイルで食べ比べ"
   },
   {
    "id": "yudofu-honpo",
@@ -7073,7 +7119,8 @@
     "note": "旅館大正屋直営の店が作る「とろける湯どうふ」。嬉野産ふくゆたかの豆腐に、温泉調理水、豆乳、ごま醤油、かつお節、おろし生姜、七味が付く。温泉水で煮て豆腐が溶け始めたら豆乳を加えて風味を足す。食べ終えたごま醤油の器には、うどんやご飯を入れてもよい。",
     "source_url": "https://gendai.media/articles/-/95379"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "大正屋の「とろける湯どうふ」をおうちで"
   },
   {
    "id": "fukuda",
@@ -7258,7 +7305,8 @@
     "note": "福田とうふ店の取り寄せセットは、450gの温泉どうふ、1.5Lの調理水、濃縮タイプの専用ごまだれの組み合わせ。付属の水に3〜4等分した豆腐をそっと入れて火にかけ、角が丸くなって水が豆乳のように濁れば食べ頃。煮すぎると溶けてしまう。",
     "source_url": "https://ureshino-tofu.stores.jp/items/6142ca9a306ad370fb2a9974"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "専用ごまだれ付き、おうちで温泉湯どうふ"
   },
   {
    "id": "fujikawa",
@@ -7486,7 +7534,8 @@
     "note": "嬉野市産ふくゆたかで作る藤川豆腐店のセットは、480gの木綿豆腐と専用調理水に柚子胡椒が付き、たれはごまだれとポン酢から選ぶ。豆腐を4〜6切れにして15〜20分煮て、汁が白く濁りとろっとすれば完成。工場の隣の直営食事処「十笑」でも食べられる。",
     "source_url": "https://www.fujikawa102.com/view/item/000000000004"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "ごまだれかポン酢を選べるお取り寄せセット"
   },
   {
    "id": "hirakawaya-wataya",
@@ -7605,7 +7654,8 @@
     "note": "和多屋別荘の館内にある佐嘉平川屋の店。嬉野の温泉水と同じ成分の調理水で豆腐を煮て、豆乳のように白く濁った汁ごと味わう。温泉湯豆腐のあとは若楠ポークのしゃぶしゃぶと締めの雑炊に進む。器は有田焼・李荘窯のもの。",
     "source_url": "https://wataya.co.jp/facility/hirakawaya"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "有田焼の器で、湯豆腐から若楠ポークのしゃぶしゃぶへ"
   },
   {
    "id": "kihara",
@@ -7755,7 +7805,8 @@
     "note": "シーボルトのあし湯の向かいにある八百屋兼惣菜店。嬉野名物の温泉湯どうふと、湯どうふ用の調理水も買えると紹介されている。",
     "source_url": "https://www.oomuraya.co.jp/kurashikanko/kihara/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "湯どうふと調理水が買える八百屋さん"
   },
   {
    "id": "ja-town",
@@ -7842,7 +7893,8 @@
     "note": "JAタウンでさが風土館季楽が出品する、福田豆腐店製のセット。450gの温泉豆腐3丁に、1.5Lの調理水と特製ごまダレが付き、3〜5人分。3〜4つに切った豆腐を調理水と一緒に土鍋か鉄鍋に入れて煮る。",
     "source_url": "https://www.ja-town.com/shop/g/g8101-500071013/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "3〜5人分、ごまダレ付きの家族セット"
   },
   {
    "id": "maruku",
@@ -7967,7 +8019,8 @@
     "yakumi": [],
     "note": "",
     "source_url": ""
-   }
+   },
+   "catch": "嬉野温泉駅の道の駅"
   },
   {
    "id": "siebold",
@@ -8080,7 +8133,8 @@
     "yakumi": [],
     "note": "",
     "source_url": ""
-   }
+   },
+   "catch": "温泉街の真ん中の公衆浴場"
   },
   {
    "id": "hyakunen",
@@ -8276,7 +8330,8 @@
     "note": "日帰り温泉「百年の湯」の食事処・百年亭では、名物の温泉湯豆腐を定食で出す。嬉野産の豆腐を温泉のお湯で仕立て、店自慢のごまだれで食べる。ご飯と味噌汁が付き、公式メニューでは1,200円と掲載している。",
     "source_url": "http://www.100nen-spa.co.jp/restaurant/"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "湯上がりに、ごまだれの湯豆腐定食"
   },
   {
    "id": "yudofu-festa",
@@ -8494,7 +8549,8 @@
     "note": "嬉野市の返礼品のうち藤川とうふ店のセットは、480gの豆腐と500gの調理水に、甘辛のゴマだれとゆずごしょうが付く。定期便で届く品もある。温泉水で煮ると煮汁が豆乳色になり、豆腐はとろとろになる。冷奴でも食べられる。",
     "source_url": "https://www.furusato-tax.jp/product/detail/41209/6036090"
    },
-   "google_place_id": ""
+   "google_place_id": "",
+   "catch": "ふるさと納税で、ゴマだれ付きの湯どうふ"
   },
   {
    "id": "sentoro",
@@ -8603,7 +8659,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "山あいの宿の朝食「三つの名物」に湯豆腐"
   },
   {
    "id": "chiyonoya",
@@ -8713,7 +8770,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "こだわり卵と温泉湯豆腐の朝ごはん"
   },
   {
    "id": "ritoen",
@@ -8829,7 +8887,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "宿特製の胡麻ダレで、割烹旅館の湯豆腐"
   },
   {
    "id": "tokai",
@@ -8935,7 +8994,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "有田焼の器で、とろとろ湯とうふ朝食"
   },
   {
    "id": "sarayama",
@@ -9026,7 +9086,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "美肌の湯と器を楽しむ、湯豆腐の朝ごはん"
   },
   {
    "id": "uchiroji",
@@ -9132,7 +9193,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "2024年開業のモダン旅館で郷土料理の朝食"
   },
   {
    "id": "hananoshizuku",
@@ -9234,7 +9296,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "専用風呂つきの隠れ宿、湯豆腐と釜炊きご飯"
   },
   {
    "id": "aroma",
@@ -9319,7 +9382,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "街歩きにぴったりの素泊まりゲストハウス"
   },
   {
    "id": "fune",
@@ -9405,7 +9469,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "炉端焼きと一緒に、夜の湯豆腐"
   },
   {
    "id": "suisha",
@@ -9502,7 +9567,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "かまど炊きご飯おかわり自由の湯どーふ御膳"
   },
   {
    "id": "sushiichi",
@@ -9587,7 +9653,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "大きな豆腐がごろっと、寿司屋の湯豆腐"
   },
   {
    "id": "tsurusushi",
@@ -9682,7 +9749,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "地魚のコースに湯豆腐が出ることも"
   },
   {
    "id": "azumaya",
@@ -9850,7 +9918,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "足湯の前のカフェで、湯とうふをお持ち帰り"
   },
   {
    "id": "kihako",
@@ -9928,7 +9997,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "湯豆腐をイメージしたフォンダンショコラ"
   },
   {
    "id": "yuuzen",
@@ -10000,7 +10070,8 @@
     "tabelog_reviews": null,
     "google": null,
     "google_reviews": null
-   }
+   },
+   "catch": "温泉街のカフェ、豆腐料理と甘味"
   }
  ]
 }
