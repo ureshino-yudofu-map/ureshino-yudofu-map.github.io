@@ -19,7 +19,7 @@
     all: [], visible: [], byId: {}, meta: {}, source: 'json', loadError: '',
     map: null, engine: '', mapWarning: '', markers: {}, me: null, selectedId: null, pick: null, background: null,
     media: { items: [], byPlace: {}, general: [], yudofu: [] }, mediaObserver: null,
-    heroPhotosStarted: false,
+    heroPhotosStarted: false, cardPhotoCache: {}, cardPhotoObserver: null,
     filters: { q: '', cats: new Set(), tares: new Set(), svcs: new Set(), tofu: '', price: PRICE_MAX, unverified: true, bounds: false, media: false },
     sort: 'category',
   };
@@ -248,18 +248,17 @@
     const host = $('#hero-photo-gallery');
     if (!host || state.heroPhotosStarted || state.engine !== 'google' || !window.TofuData || typeof window.TofuData.getGooglePhotos !== 'function') return;
     const candidates = shuffled(state.all.filter((place) => place.status === 'published' && place.yudofu === 'confirmed' &&
-      (place.category === 'restaurant' || place.category === 'tofu_maker') && place.yudofu_style && place.yudofu_style.note));
+      (place.category === 'restaurant' || place.category === 'tofu_maker') && place.yudofu_style && place.yudofu_style.note)).slice(0, 10);
     if (!candidates.length) return;
     state.heroPhotosStarted = true;
-    const items = [];
-    for (const place of candidates) {
-      if (items.length >= 6) break;
+    const results = await Promise.all(candidates.map(async (place) => {
       let photos = [];
-      try { photos = await window.TofuData.getGooglePhotos(place, { max: 1, maxWidth: 600 }); } catch (e) { continue; }
+      try { photos = await window.TofuData.getGooglePhotos(place, { max: 1, maxWidth: 600 }); } catch (e) { return null; }
       const photo = (photos || []).find((item) => item && item.url && item.author && item.author.name && item.author.uri);
-      if (!photo || !(await heroImageLoads(photo.url))) continue;
-      items.push({ place, photo });
-    }
+      if (!photo || !(await heroImageLoads(photo.url))) return null;
+      return { place, photo };
+    }));
+    const items = results.filter(Boolean).slice(0, 6);
     if (!host.isConnected || !items.length) return;
     host.innerHTML = items.map(({ place, photo }) => {
       const catchText = String(place.catch || '').trim();
@@ -298,6 +297,46 @@
       return '<figure class="detail-google-photo"><img src="' + esc(photo.url) + '" alt="' + esc(place.name + 'のお店の写真 ' + (index + 1)) + '" loading="lazy" decoding="async"' + size + '><figcaption>' + googleLabel + '<span aria-hidden="true"> · </span><span>撮影: </span><a href="' + esc(photo.author.uri) + '" target="_blank" rel="noopener noreferrer">' + esc(photo.author.name) + '</a></figcaption></figure>';
     }).join('') + '</div></section>';
     host.hidden = false;
+  }
+
+  function cardPhotoRequest(place) {
+    if (state.cardPhotoCache[place.id]) return state.cardPhotoCache[place.id];
+    state.cardPhotoCache[place.id] = (async () => {
+      let photos = [];
+      try { photos = await window.TofuData.getGooglePhotos(place, { max: 1, maxWidth: 480 }); } catch (e) { return null; }
+      const photo = (photos || []).find((item) => item && item.url && item.author && item.author.name && item.author.uri);
+      if (!photo || !(await heroImageLoads(photo.url))) return null;
+      return photo;
+    })();
+    return state.cardPhotoCache[place.id];
+  }
+
+  function fillCardPhoto(host, place, photo) {
+    const card = host.closest('.card');
+    if (!card || !host.isConnected || host.dataset.cardPhoto !== place.id) return;
+    host.classList.remove('is-loading'); card.classList.remove('photo-loading');
+    if (!photo) { host.hidden = true; return; }
+    const size = Number(photo.width) > 0 && Number(photo.height) > 0 ? ' width="' + Number(photo.width) + '" height="' + Number(photo.height) + '"' : '';
+    const googleLabel = photo.google_maps_uri ? '<a href="' + esc(photo.google_maps_uri) + '" target="_blank" rel="noopener noreferrer">Google マップ</a>' : '<span>Google マップ</span>';
+    host.innerHTML = '<img src="' + esc(photo.url) + '" alt="' + esc(place.name + 'のお店の写真') + '" decoding="async"' + size + '>' +
+      '<div class="card-photo-attribution">' + googleLabel + '<span aria-hidden="true"> · </span><span>撮影: </span><a href="' + esc(photo.author.uri) + '" target="_blank" rel="noopener noreferrer">' + esc(photo.author.name) + '</a></div>';
+    host.hidden = false; card.classList.add('has-photo');
+  }
+
+  function observeCardPhotos(root) {
+    if (state.cardPhotoObserver) state.cardPhotoObserver.disconnect();
+    state.cardPhotoObserver = null;
+    if (state.engine !== 'google' || !window.TofuData || typeof window.TofuData.getGooglePhotos !== 'function' || !('IntersectionObserver' in window)) return;
+    const hosts = $$('[data-card-photo]', root);
+    state.cardPhotoObserver = new IntersectionObserver((entries, observer) => entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const card = entry.target; observer.unobserve(card);
+      const host = $('[data-card-photo]', card); if (!host) return;
+      const place = state.byId[host.dataset.cardPhoto]; if (!place) return;
+      host.hidden = false; host.classList.add('is-loading'); card.classList.add('photo-loading');
+      cardPhotoRequest(place).then((photo) => fillCardPhoto(host, place, photo));
+    }), { threshold: 0.01 });
+    hosts.forEach((host) => state.cardPhotoObserver.observe(host.closest('.card')));
   }
 
   // ------------------------------------------------------------------ 地図（エンジン切替: Google マップ / Leaflet）
@@ -467,7 +506,6 @@
       fitBounds: (points, opts) => map.fitBounds(points, { padding: [(opts && opts.padding) || 40, (opts && opts.padding) || 40], maxZoom: (opts && opts.maxZoom) || 16 }),
       addMarker: (o) => {
         const m = L.marker([o.lat, o.lng], { icon: divIcon(o.html), keyboard: true, title: o.title || '', zIndexOffset: o.zIndex || 0 });
-        if (o.title) m.bindTooltip(o.title, { direction: 'top', opacity: .95 });
         if (o.onClick) m.on('click', o.onClick);
         m.addTo(layer);
         return { setHtml: (html) => m.setIcon(divIcon(html)), setZIndex: (z) => m.setZIndexOffset(z), remove: () => layer.removeLayer(m) };
@@ -503,7 +541,9 @@
     if (p.geo_precision !== 'exact') cls.push('approx');
     if (!isConfirmed(p)) cls.push('unverified');
     if (selected) cls.push('selected');
-    return '<div class="' + cls.join(' ') + '" style="--c:' + catVar(p.category) + '"><div class="pin-body"></div><div class="pin-label">' + CAT_LETTER[p.category] + '</div></div>';
+    const catchText = String(p.catch || '').trim();
+    return '<div class="' + cls.join(' ') + '" style="--c:' + catVar(p.category) + '"><div class="pin-body"></div><div class="pin-label">' + CAT_LETTER[p.category] + '</div>' +
+      '<div class="pin-popover"><strong>' + esc(p.name) + '</strong>' + (catchText ? '<span>' + esc(catchText) + '</span>' : '') + '</div></div>';
   }
   function setMarkerSelected(id, selected) {
     const h = state.markers[id]; const p = state.byId[id];
@@ -540,7 +580,7 @@
       const selected = p.id === state.selectedId;
       state.markers[p.id] = state.map.addMarker({
         lat: ll[0], lng: ll[1], html: pinHtml(p, selected), zIndex: selected ? 1000 : 0,
-        title: p.name + (p.price_min != null ? '　' + yen(p.price_min) + '〜' : '') + (p.geo_precision !== 'exact' ? '（位置は概略）' : ''),
+        title: p.name + (p.catch ? ' — ' + p.catch : '') + (p.price_min != null ? '　' + yen(p.price_min) + '〜' : '') + (p.geo_precision !== 'exact' ? '（位置は概略）' : ''),
         onClick: () => selectPlace(p.id, { pan: false }),
       });
     });
@@ -742,6 +782,7 @@
       const menuNames = p.menu.slice(0, 2).map((m) => esc(m.name) + (m.price != null ? ' ' + yen(m.price) : '')).join(' / ');
       const tare = p.yudofu_style && Array.isArray(p.yudofu_style.tare) ? p.yudofu_style.tare : [];
       const tareLine = tare.length ? '<div class="card-tare"><span class="card-tare-label">たれ</span><span class="card-tare-values">' + esc(tare.join('・')) + '</span></div>' : '';
+      const catchLine = p.catch ? '<span class="card-catch">' + esc(p.catch) + '</span>' : '';
       const badges = [];
       if (!isConfirmed(p)) badges.push('<span class="badge warn">' + (p.yudofu === 'none' ? '提供なし' : '要確認') + '</span>');
       if (hasGeo(p) && p.geo_precision !== 'exact') badges.push('<span class="badge" title="住所から推定した概略位置です">位置は概略</span>');
@@ -752,12 +793,14 @@
       if (mediaCount) badges.push('<span class="media-count">▧ 写真・動画 ' + mediaCount + '件</span>');
       p.service.slice(0, 3).forEach((s) => badges.push('<span class="badge">' + esc(s) + '</span>'));
       return '<li class="card' + (p.id === state.selectedId ? ' selected' : '') + '" data-id="' + esc(p.id) + '" style="--c:' + catVar(p.category) + '" tabindex="0" role="button">' +
-        '<div class="card-head"><span class="card-icon" style="--c:' + catVar(p.category) + '">' + I.icon(p.category) + '</span><p class="card-name">' + esc(p.name) + (p.name_kana ? '<span class="card-kana">' + esc(p.name_kana) + '</span>' : '') + '</p>' + priceLine(p) + '</div>' +
+        '<div class="card-google-photo" data-card-photo="' + esc(p.id) + '" hidden></div><div class="card-body">' +
+        '<div class="card-head"><span class="card-icon" style="--c:' + catVar(p.category) + '">' + I.icon(p.category) + '</span><p class="card-name">' + esc(p.name) + catchLine + (p.name_kana ? '<span class="card-kana">' + esc(p.name_kana) + '</span>' : '') + '</p>' + priceLine(p) + '</div>' +
         '<div class="card-meta"><span class="badge cat" style="--c:' + catVar(p.category) + '">' + esc(catLabel(p.category)) + '</span>' + badges.join('') + '</div>' +
         (menuNames ? '<div class="card-menu">' + menuNames + (p.menu.length > 2 ? ' ほか' + (p.menu.length - 2) + '品' : '') + '</div>' : '') +
         tareLine +
-        '</li>';
+        '</div></li>';
     }).join('');
+    observeCardPhotos(ol);
   }
 
   // ------------------------------------------------------------------ 詳細
@@ -850,7 +893,7 @@
 
     const html = [
       '<button type="button" class="detail-close" id="btn-detail-close" aria-label="閉じる">×</button>',
-      '<div class="detail-top"><div><h2>' + esc(p.name) + '</h2>' + (p.name_kana ? '<div class="kana">' + esc(p.name_kana) + '</div>' : '') + '</div></div>',
+      '<div class="detail-top"><div><h2>' + esc(p.name) + '</h2>' + (p.catch ? '<p class="detail-catch">' + esc(p.catch) + '</p>' : '') + (p.name_kana ? '<div class="kana">' + esc(p.name_kana) + '</div>' : '') + '</div></div>',
       '<div class="detail-badges">' + badges.join('') + '</div>',
       priceSummary,
       renderYudofuStyle(p),
