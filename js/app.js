@@ -19,6 +19,7 @@
     all: [], visible: [], byId: {}, meta: {}, source: 'json', loadError: '',
     map: null, engine: '', mapWarning: '', markers: {}, me: null, selectedId: null, pick: null, background: null,
     media: { items: [], byPlace: {}, general: [], yudofu: [] }, mediaObserver: null,
+    heroPhotosStarted: false,
     filters: { q: '', cats: new Set(), tares: new Set(), svcs: new Set(), tofu: '', price: PRICE_MAX, unverified: true, bounds: false, media: false },
     sort: 'category',
   };
@@ -50,6 +51,7 @@
     const backgroundPromise = loadBackgroundContent();
     try {
       await loadLocalData();          // まず同梱データを即表示
+      renderHeroPhotoGallery();       // 取得中は既存のヒーローを表示したままにする
     } catch (e) {
       console.error(e);
       state.loadError = String(e && e.message || e);
@@ -67,6 +69,7 @@
       const ok = await loadSheetData();
       if (ok) {
         const f = state.filters;
+        renderHeroPhotoGallery();
         buildDynamicControls();
         renderMakerList();
         $('#tofu-select').value = f.tofu;
@@ -224,6 +227,50 @@
     const m = prioritizedMedia()[0];
     el.innerHTML = m ? mediaCard(m, true) : '<p class="muted">公開中の投稿はまだありません。</p>';
     observeMedia(el);
+  }
+  function shuffled(list) {
+    const out = list.slice();
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = out[i]; out[i] = out[j]; out[j] = t;
+    }
+    return out;
+  }
+  function heroImageLoads(url) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  }
+  async function renderHeroPhotoGallery() {
+    const host = $('#hero-photo-gallery');
+    if (!host || state.heroPhotosStarted || state.engine !== 'google' || !window.TofuData || typeof window.TofuData.getGooglePhotos !== 'function') return;
+    const candidates = shuffled(state.all.filter((place) => place.status === 'published' && place.yudofu === 'confirmed' &&
+      (place.category === 'restaurant' || place.category === 'tofu_maker') && place.yudofu_style && place.yudofu_style.note));
+    if (!candidates.length) return;
+    state.heroPhotosStarted = true;
+    const items = [];
+    for (const place of candidates) {
+      if (items.length >= 6) break;
+      let photos = [];
+      try { photos = await window.TofuData.getGooglePhotos(place, { max: 1, maxWidth: 600 }); } catch (e) { continue; }
+      const photo = (photos || []).find((item) => item && item.url && item.author && item.author.name && item.author.uri);
+      if (!photo || !(await heroImageLoads(photo.url))) continue;
+      items.push({ place, photo });
+    }
+    if (!host.isConnected || !items.length) return;
+    host.innerHTML = items.map(({ place, photo }) => {
+      const catchText = String(place.catch || '').trim();
+      const size = Number(photo.width) > 0 && Number(photo.height) > 0 ? ' width="' + Number(photo.width) + '" height="' + Number(photo.height) + '"' : '';
+      const googleLabel = photo.google_maps_uri ? '<a href="' + esc(photo.google_maps_uri) + '" target="_blank" rel="noopener noreferrer">Google マップ</a>' : '<span>Google マップ</span>';
+      return '<article class="hero-photo-card"><img src="' + esc(photo.url) + '" alt="' + esc(place.name + 'のお客さんが撮った写真') + '" decoding="async"' + size + '>' +
+        '<a class="hero-photo-place" href="#place=' + encodeURIComponent(place.id) + '" data-hero-place="' + esc(place.id) + '" aria-label="' + esc(place.name + 'の詳細を開く') + '"><span class="hero-photo-meta"><strong>' + esc(place.name) + '</strong>' + (catchText ? '<span>' + esc(catchText) + '</span>' : '') + '</span></a>' +
+        '<div class="hero-photo-attribution">' + googleLabel + '<span aria-hidden="true"> · </span><span>撮影: </span><a href="' + esc(photo.author.uri) + '" target="_blank" rel="noopener noreferrer">' + esc(photo.author.name) + '</a></div></article>';
+    }).join('');
+    host.hidden = false;
+    $('.home-hero').classList.add('has-photo-gallery');
   }
   function renderMediaGallery() {
     const el = $('#media-gallery'); if (!el) return;
@@ -1054,6 +1101,13 @@
     $('#btn-about').addEventListener('click', openAbout);
     $('#btn-theme').addEventListener('click', toggleTheme);
     $('#btn-hero-near').addEventListener('click', () => { $('#explore').scrollIntoView({ behavior: 'smooth', block: 'start' }); locateMe(); });
+    $('#hero-photo-gallery').addEventListener('click', (e) => {
+      const link = e.target.closest('[data-hero-place]'); if (!link) return;
+      const id = link.dataset.heroPlace; if (!state.byId[id]) return;
+      e.preventDefault();
+      $('#explore').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      selectPlace(id, { pan: true, scroll: false });
+    });
     $$('.journey-card').forEach((b) => b.addEventListener('click', () => applyQuickFilter(b.dataset.quickCat ? 'cat' : 'svc', b.dataset.quickCat || b.dataset.quickSvc)));
     $('#maker-list').addEventListener('click', (e) => { const b = e.target.closest('[data-maker-id]'); if (!b) return; $('#explore').scrollIntoView({ behavior: 'smooth', block: 'start' }); selectPlace(b.dataset.makerId, { pan: true }); });
     $('#form-contribute').addEventListener('submit', submitContribute);
