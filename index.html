@@ -158,11 +158,16 @@
 
         <section class="map-wrap" aria-label="地図">
           <div id="map" role="application" aria-label="嬉野温泉 湯どうふマップ"></div>
+          <div class="map-mode-switch" role="group" aria-label="地図の表示を切り替える">
+            <button type="button" class="active" id="btn-map-illustrated" aria-pressed="true">イラスト地図</button>
+            <button type="button" id="btn-map-google" aria-pressed="false">航空写真・詳しい地図</button>
+          </div>
           <div class="map-legend" id="legend" aria-label="凡例"></div>
           <div class="map-tools">
             <button type="button" class="map-btn" id="btn-locate" title="現在地を表示">◎ 現在地</button>
             <button type="button" class="map-btn" id="btn-fit" title="全体を表示">⤢ 全体</button>
           </div>
+          <article class="map-place-card" id="map-place-card" aria-live="polite" hidden></article>
           <div class="pick-banner" id="pick-banner" hidden>
             <span>地図上で正しい位置をクリック（タップ）してください</span>
             <button type="button" class="btn btn-small" id="btn-pick-cancel">やめる</button>

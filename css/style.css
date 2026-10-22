@@ -582,3 +582,120 @@ h1, h2 { font-family: var(--font-title); font-weight: 700; }
   .hero-actions { display: grid; }
   .form-grid { grid-template-columns: 1fr; }
 }
+
+/* ---- イラスト地図 / 地図上の店舗カード ---- */
+#map { background: #f8edda; }
+:root[data-theme="dark"] #map { background: #211c1d; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) #map { background: #211c1d; }
+}
+.map-mode-switch {
+  position: absolute; top: 12px; left: 50%; z-index: 900; display: inline-flex; max-width: calc(100% - 176px); padding: 4px;
+  border: 1px solid color-mix(in srgb, var(--line) 80%, transparent); border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-elev) 92%, transparent); box-shadow: var(--shadow-soft); transform: translateX(-50%); backdrop-filter: blur(14px);
+}
+.map-wrap::after {
+  content: ""; position: absolute; inset: 0; z-index: 450; pointer-events: none; opacity: .16;
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(130, 99, 76, .22) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 72% 66%, rgba(255, 255, 255, .8) 0 1px, transparent 1.5px);
+  background-size: 31px 29px, 43px 41px;
+  mix-blend-mode: multiply;
+}
+:root[data-theme="dark"] .map-wrap::after { opacity: .08; mix-blend-mode: screen; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .map-wrap::after { opacity: .08; mix-blend-mode: screen; }
+}
+.leaflet-image-layer { filter: saturate(.9) contrast(.98); }
+:root[data-theme="dark"] .leaflet-image-layer { filter: brightness(.48) saturate(.72) sepia(.14); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .leaflet-image-layer { filter: brightness(.48) saturate(.72) sepia(.14); }
+}
+.map-mode-switch button { min-width: 0; padding: 7px 13px; border: 0; border-radius: 999px; background: transparent; color: var(--fg-muted); cursor: pointer; font-size: .76rem; font-weight: 600; white-space: nowrap; }
+.map-mode-switch button.active { background: var(--accent); color: var(--accent-fg); box-shadow: 0 4px 13px color-mix(in srgb, var(--accent) 22%, transparent); }
+.map-mode-switch button:disabled { cursor: wait; opacity: .64; }
+.map-place-card {
+  position: absolute; left: 50%; bottom: 24px; z-index: 1050; width: min(440px, calc(100% - 32px)); padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--blush) 58%, var(--line)); border-radius: 24px; background: color-mix(in srgb, var(--bg-elev) 95%, transparent);
+  color: var(--fg); box-shadow: 0 22px 65px rgba(79, 55, 50, .24); transform: translateX(-50%); backdrop-filter: blur(18px);
+}
+.map-card-close { position: absolute; right: 11px; top: 10px; width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 50%; background: var(--bg-elev); color: var(--fg-muted); cursor: pointer; font-size: 1rem; line-height: 1; }
+.map-card-heading { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; padding-right: 28px; align-items: start; }
+.map-card-icon { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 17px; background: color-mix(in srgb, var(--c) 17%, var(--bg-elev)); color: var(--c); }
+.map-card-illust { width: 27px; height: 27px; }
+.map-card-category { display: block; margin: 0 0 2px; color: var(--fg-muted); font-size: .66rem; font-weight: 700; letter-spacing: .1em; }
+.map-place-card h3 { margin: 0; font-family: var(--font-title); font-size: 1.18rem; line-height: 1.4; }
+.map-card-heading p { margin: 4px 0 0; color: var(--clay); font-size: .76rem; line-height: 1.5; }
+.map-card-price { display: flex; align-items: baseline; gap: 8px; margin: 13px 0 0 60px; }
+.map-card-price strong { color: var(--clay); font-family: var(--font-title); font-size: 1.1rem; }
+.map-card-price span { min-width: 0; overflow: hidden; color: var(--fg-muted); font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+.map-card-tare { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin: 10px 0 0 60px; font-size: .7rem; }
+.map-card-tare > span { margin-right: 2px; color: var(--fg-muted); font-weight: 700; }
+.map-card-tare b { padding: 2px 7px; border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--line)); border-radius: 999px; background: var(--accent-soft); color: var(--fg); font-weight: 500; }
+.map-card-actions { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 7px; margin-top: 15px; }
+.map-card-actions .btn { min-width: 0; justify-content: center; padding: 8px 10px; font-size: .75rem; }
+.map-app-links { display: block; margin-top: 3px; font-size: .78rem; }
+
+/* 地図を主役にするため、一覧は要点だけを短く見せる */
+.layout { height: min(720px, calc(100svh - 16px)); min-height: 600px; }
+.filters { padding: 14px; }
+.place-list { padding: 7px 10px 18px; }
+.card { margin-bottom: 8px; border-radius: 16px; box-shadow: 0 5px 18px rgba(79, 55, 50, .07); }
+.card-body { padding: 12px 13px 13px; }
+.card-google-photo { height: 122px; }
+.card-icon { width: 34px; height: 34px; flex-basis: 34px; border-radius: 12px; }
+.card-name { min-width: 0; font-size: .96rem; line-height: 1.4; }
+.card-catch { overflow: hidden; margin-top: 2px; text-overflow: ellipsis; white-space: nowrap; }
+.card-kana { display: none; }
+.card-price { font-size: .9rem; }
+.card-price .price-item, .card-price .src-link { display: none; }
+.card-meta { flex-wrap: nowrap; gap: 4px; overflow: hidden; white-space: nowrap; }
+.card-meta > * { flex: none; }
+.card-menu { margin-top: 3px; font-size: .76rem; }
+.card-tare { margin-top: 4px; }
+.list-more { padding: 7px 2px 16px; text-align: center; }
+.list-more .btn { width: 100%; justify-content: center; border-style: dashed; background: color-mix(in srgb, var(--bg-elev) 88%, transparent); color: var(--accent); font-weight: 700; }
+.list-more .btn span { color: var(--fg-muted); font-size: .76rem; font-weight: 500; }
+
+.pin { position: relative; width: 42px; height: 48px; filter: drop-shadow(0 6px 7px rgba(69, 45, 40, .2)); }
+.pin .pin-body {
+  position: absolute; left: 3px; top: 1px; display: grid; width: 36px; height: 36px; place-items: center; border: 2px solid #fffaf6; border-radius: 50%;
+  background: var(--c); box-shadow: 0 2px 0 color-mix(in srgb, var(--c) 78%, #433); transform: none; transition: transform .18s, box-shadow .18s;
+}
+.pin .pin-body::after { content: ""; position: absolute; left: 11px; bottom: -7px; z-index: -1; width: 11px; height: 11px; border-right: 2px solid #fffaf6; border-bottom: 2px solid #fffaf6; background: var(--c); transform: rotate(45deg); }
+.pin .pin-label { position: static; display: grid; width: 23px; height: 23px; place-items: center; color: #fff; pointer-events: none; text-shadow: none; }
+.pin-illust { width: 22px; height: 22px; }
+.pin.approx .pin-body { border-style: dashed; opacity: .92; }
+.pin.unverified .pin-body { background: var(--bg-elev); border-color: var(--c); }
+.pin.unverified .pin-body::after { background: var(--bg-elev); border-color: var(--c); }
+.pin.unverified .pin-label { color: var(--c); }
+.pin.selected .pin-body { z-index: 2; transform: translateY(-3px) scale(1.17); box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent-soft) 82%, transparent), 0 3px 0 color-mix(in srgb, var(--c) 78%, #433); }
+.leaflet-marker-icon.pin-icon { overflow: visible; background: transparent; border: 0; }
+.legend-item .legend-icon { display: grid; width: 22px; height: 22px; flex: 0 0 auto; place-items: center; border-radius: 8px; background: color-mix(in srgb, var(--c) 14%, transparent); color: var(--c); }
+.legend-illust { width: 14px; height: 14px; }
+.map-legend { bottom: 18px; border-radius: 16px; background: color-mix(in srgb, var(--bg-elev) 94%, transparent); backdrop-filter: blur(12px); }
+.map-tools { top: 60px; }
+.leaflet-control-attribution { max-width: min(72vw, 560px); background: rgba(255, 253, 251, .84); color: #685c59; }
+.leaflet-control-attribution a { color: #586f65; }
+:root[data-theme="dark"] .leaflet-control-attribution { background: rgba(34, 29, 30, .84); color: #c6b8b6; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .leaflet-control-attribution { background: rgba(34, 29, 30, .84); color: #c6b8b6; }
+}
+
+@media (max-width: 900px) {
+  .layout, .layout.has-detail { height: min(720px, calc(100svh - var(--header-h) - 66px)); min-height: 520px; }
+  .card-google-photo { height: 118px; }
+  .map-mode-switch { top: 8px; max-width: calc(100% - 86px); }
+  .map-mode-switch button { padding: 7px 10px; font-size: .7rem; }
+  .map-tools { top: 58px; right: 8px; }
+  .map-place-card { bottom: calc(88px + env(safe-area-inset-bottom)); width: calc(100% - 20px); padding: 15px; border-radius: 21px; }
+  .map-card-heading { grid-template-columns: 44px minmax(0, 1fr); gap: 10px; }
+  .map-card-icon { width: 44px; height: 44px; border-radius: 15px; }
+  .map-card-price, .map-card-tare { margin-left: 54px; }
+  .map-card-actions { grid-template-columns: 1fr 1fr; }
+  .map-card-actions [data-map-card-detail] { grid-column: 1 / -1; }
+  .map-legend { left: 8px; bottom: calc(76px + env(safe-area-inset-bottom)); max-width: 150px; }
+  .map-wrap:has(.map-place-card:not([hidden])) .map-legend { display: none; }
+  .leaflet-control-attribution { bottom: calc(66px + env(safe-area-inset-bottom)); max-width: 82vw; font-size: .56rem; }
+  .map-wrap:has(.map-place-card:not([hidden])) .leaflet-control-attribution { bottom: calc(380px + env(safe-area-inset-bottom)); }
+}

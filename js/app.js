@@ -12,16 +12,15 @@
 
   const CAT_ORDER = ['restaurant', 'hotel', 'tofu_maker', 'shop', 'onsen', 'other'];
   const TARE_ORDER = Object.keys(S.TARE_TYPES);
-  const CAT_LETTER = { restaurant: '食', hotel: '宿', tofu_maker: '豆', shop: '店', onsen: '湯', other: '他' };
   const PRICE_MAX = 10000;
 
   const state = {
     all: [], visible: [], byId: {}, meta: {}, source: 'json', loadError: '',
-    map: null, engine: '', mapWarning: '', markers: {}, me: null, selectedId: null, pick: null, background: null,
+    map: null, engine: '', mapWarning: '', mapSwitching: false, markers: {}, me: null, selectedId: null, mapCardId: null, pick: null, background: null,
     media: { items: [], byPlace: {}, general: [], yudofu: [] }, mediaObserver: null,
     heroPhotosStarted: false, cardPhotoCache: {}, cardPhotoObserver: null,
     filters: { q: '', cats: new Set(), tares: new Set(), svcs: new Set(), tofu: '', price: PRICE_MAX, unverified: true, bounds: false, media: false },
-    sort: 'category',
+    sort: 'category', listLimit: 10,
   };
 
   const $ = (sel, root) => (root || document).querySelector(sel);
@@ -44,8 +43,7 @@
     buildStaticControls();
     await createMap();
     bindEvents();
-    state.map.onMoveEnd(() => { if (state.filters.bounds) applyFilters({}); });
-    state.map.onClick((lat, lng) => { if (state.pick) finishPick({ lat, lng }); });
+    bindMapEvents();
     if (state.mapWarning) toast(state.mapWarning);
     const mediaPromise = loadMediaData();
     const backgroundPromise = loadBackgroundContent();
@@ -169,6 +167,7 @@
     document.documentElement.dataset.theme = dark ? 'light' : 'dark';
     localStorage.setItem('tofu-theme', dark ? 'light' : 'dark');
     updateThemeButton();
+    if (state.map && state.map.setTheme) state.map.setTheme(!dark);
   }
 
   // ------------------------------------------------------------------ 写真・動画（TofuData.loadMedia の確認済みデータだけを使う）
@@ -339,27 +338,23 @@
     hosts.forEach((host) => state.cardPhotoObserver.observe(host.closest('.card')));
   }
 
-  // ------------------------------------------------------------------ 地図（エンジン切替: Google マップ / Leaflet）
+  // ------------------------------------------------------------------ 地図（初期表示: OpenFreeMap / 任意切替: Google マップ）
   // state.map は共通インターフェース:
   //   setView(lat,lng,zoom) panTo(lat,lng) getZoom() contains(lat,lng) fitBounds(points,{padding,maxZoom})
   //   addMarker({lat,lng,html,title,zIndex,onClick}) -> {setHtml, setZIndex, remove}  clearMarkers()
   //   setMeMarker(lat,lng) invalidateSize() setCursor(css) onMoveEnd(fn) onClick(fn)
   async function createMap() {
-    const key = (CFG.GOOGLE_MAPS_API_KEY || '').trim();
-    const isLocal = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-    if (key && !isLocal) {
-      try {
-        await loadGoogleMaps(key);
-        state.map = createGoogleMap();
-        state.engine = 'google';
-        return;
-      } catch (e) {
-        console.warn('Google マップを読み込めなかったため Leaflet に切り替えます:', e && e.message);
-        state.mapWarning = 'Google マップを読み込めませんでした（API キーの設定を確認）。代わりの地図を表示しています。';
-      }
-    }
     state.map = createLeafletMap();
-    state.engine = 'leaflet';
+    state.engine = 'illustrated';
+    updateMapModeButtons();
+  }
+
+  function bindMapEvents() {
+    state.map.onMoveEnd(() => { if (state.filters.bounds) applyFilters({}); });
+    state.map.onClick((lat, lng) => {
+      if (state.pick) finishPick({ lat, lng });
+      else closeMapCard();
+    });
   }
 
   function loadGoogleMaps(key) {
@@ -369,7 +364,7 @@
       window.__tofuGmReady = () => { clearTimeout(timer); resolve(); };
       window.gm_authFailure = () => {   // キー無効・リファラ制限などで Google 側が拒否したとき（地図生成後に呼ばれることもある）
         clearTimeout(timer);
-        if (state.engine === 'google') switchToLeaflet('Google マップの認証に失敗しました（API キーの制限・有効化・請求設定を確認）。代わりの地図を表示しています。');
+        if (state.engine === 'google') switchMapEngine('illustrated', 'Google マップの認証に失敗したため、イラスト地図に戻しました。');
         else reject(new Error('auth'));
       };
       const sc = document.createElement('script');
@@ -380,16 +375,72 @@
     });
   }
 
-  function switchToLeaflet(message) {
+  function mapCenter() {
+    return state.map && state.map.getCenter ? state.map.getCenter() : { lat: CFG.MAP_CENTER[0], lng: CFG.MAP_CENTER[1] };
+  }
+
+  function updateMapModeButtons() {
+    const illustrated = state.engine !== 'google';
+    const bi = $('#btn-map-illustrated'), bg = $('#btn-map-google');
+    if (!bi || !bg) return;
+    bi.classList.toggle('active', illustrated); bi.setAttribute('aria-pressed', illustrated ? 'true' : 'false');
+    bg.classList.toggle('active', !illustrated); bg.setAttribute('aria-pressed', illustrated ? 'false' : 'true');
+    bg.disabled = state.mapSwitching || !(CFG.GOOGLE_MAPS_API_KEY || '').trim();
+    bi.disabled = state.mapSwitching;
+    bg.textContent = state.mapSwitching ? '読み込み中…' : '航空写真・詳しい地図';
+    if (!(CFG.GOOGLE_MAPS_API_KEY || '').trim()) bg.title = 'Google マップ API キーが設定されていません';
+  }
+
+  function updatePhotoMode() {
+    const host = $('#hero-photo-gallery');
+    if (state.engine === 'google') {
+      if (host && host.children.length) { host.hidden = false; $('.home-hero').classList.add('has-photo-gallery'); }
+      else renderHeroPhotoGallery();
+    } else if (host) {
+      host.hidden = true; $('.home-hero').classList.remove('has-photo-gallery');
+      if (state.cardPhotoObserver) state.cardPhotoObserver.disconnect();
+    }
+    renderList();
+    if (state.selectedId && state.byId[state.selectedId]) renderDetail(state.byId[state.selectedId]);
+  }
+
+  async function switchMapEngine(target, message) {
+    if (state.mapSwitching || target === state.engine) { if (message) toast(message); return; }
+    const key = (CFG.GOOGLE_MAPS_API_KEY || '').trim();
+    if (target === 'google' && !key) return toast('Google マップは現在利用できません');
+    const center = mapCenter(), zoom = state.map.getZoom();
+    let replaced = false;
+    state.mapSwitching = true; updateMapModeButtons();
     try {
+      if (target === 'google') await loadGoogleMaps(key);
+      if (state.map && state.map.destroy) state.map.destroy();
+      replaced = true;
       const el = $('#map'); el.innerHTML = ''; el.className = '';
-      state.map = createLeafletMap();
-      state.engine = 'leaflet';
+      state.map = target === 'google' ? createGoogleMap() : createLeafletMap();
+      state.engine = target;
       state.markers = {};
-      applyFilters({ fit: true });
+      bindMapEvents();
+      state.map.setView(center.lat, center.lng, zoom);
+      renderMarkers();
       if (state.me) state.map.setMeMarker(state.me[0], state.me[1]);
+      if (state.mapCardId && state.byId[state.mapCardId]) openMapCard(state.byId[state.mapCardId]);
+      updatePhotoMode();
       if (message) toast(message);
-    } catch (e) { console.error('地図の切り替えに失敗', e); }
+    } catch (e) {
+      console.warn('地図の切り替えに失敗しました', e);
+      if (replaced && target === 'google') {
+        try {
+          const el = $('#map'); el.innerHTML = ''; el.className = '';
+          state.map = createLeafletMap(); state.engine = 'illustrated'; state.markers = {};
+          bindMapEvents(); state.map.setView(center.lat, center.lng, zoom); renderMarkers();
+          if (state.me) state.map.setMeMarker(state.me[0], state.me[1]);
+          if (state.mapCardId && state.byId[state.mapCardId]) openMapCard(state.byId[state.mapCardId]);
+        } catch (fallbackError) { console.error('イラスト地図の復旧に失敗しました', fallbackError); }
+      }
+      toast('Google マップを読み込めませんでした。イラスト地図をそのまま表示します。');
+    } finally {
+      state.mapSwitching = false; updateMapModeButtons();
+    }
   }
 
   // ---- Google マップ -------------------------------------------------------
@@ -410,6 +461,7 @@
       engine: 'google',
       setView: (lat, lng, zoom) => { gmap.setCenter({ lat, lng }); if (zoom != null) gmap.setZoom(zoom); },
       panTo: (lat, lng) => gmap.panTo({ lat, lng }),
+      getCenter: () => { const c = gmap.getCenter(); return c ? { lat: c.lat(), lng: c.lng() } : { lat: CFG.MAP_CENTER[0], lng: CFG.MAP_CENTER[1] }; },
       getZoom: () => gmap.getZoom() || CFG.MAP_ZOOM,
       contains: (lat, lng) => { const b = gmap.getBounds(); return !b || b.contains({ lat, lng }); },
       fitBounds: (points, opts) => {
@@ -443,14 +495,20 @@
       },
       invalidateSize: () => google.maps.event.trigger(gmap, 'resize'),
       setCursor: (css) => gmap.setOptions({ draggableCursor: css || null }),
+      setTheme: () => {},
       onMoveEnd: (fn) => gmap.addListener('idle', fn),
       onClick: (fn) => gmap.addListener('click', (e) => { if (e.latLng) fn(e.latLng.lat(), e.latLng.lng()); }),
+      destroy: () => { markers.forEach((mk) => { mk.map = null; }); markers.clear(); if (me) me.map = null; google.maps.event.clearInstanceListeners(gmap); },
     };
   }
 
-  // ---- Leaflet（OpenFreeMap / 地理院タイル。Google マップ未設定時や読み込み失敗時） ----------
+  // ---- OpenFreeMap（MapLibre を Leaflet の共通操作層に載せる） -----------------------------
   function createLeafletMap() {
     const map = L.map('map', { zoomControl: false, center: CFG.MAP_CENTER, zoom: CFG.MAP_ZOOM, preferCanvas: false });
+    const illustrated = L.imageOverlay('assets/ureshino-illustrated-map.svg?v=2.0.0', [[33.065, 129.950], [33.135, 130.045]], {
+      opacity: 1, interactive: false,
+      attribution: '<span>概略イラスト</span> · <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>',
+    });
     const gsi = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
       maxZoom: 18, attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>',
     });
@@ -460,47 +518,48 @@
     const photo = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
       maxZoom: 18, attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル（写真）</a>',
     });
-    // ベクター地図（OpenFreeMap: 鍵・費用不要）。WebGL が使えない端末や取得失敗時は地理院タイルに切り替える
+    // ベクター地図（OpenFreeMap: 鍵・費用不要）。WebGL 非対応時も通常の地図へ戻さず、概略イラストを表示する。
     const bases = {};
     let vector = null;
-    const vectorSupported = typeof maplibregl !== 'undefined' && typeof maplibregl.supported === 'function' &&
-      maplibregl.supported({ failIfMajorPerformanceCaveat: true }) && !/HeadlessChrome/.test(navigator.userAgent);
+    const vectorSupported = typeof maplibregl !== 'undefined' && typeof maplibregl.supported === 'function' && maplibregl.supported();
     if (CFG.BASEMAP === 'vector' && typeof L.maplibreGL === 'function' && vectorSupported) {
       try {
         vector = L.maplibreGL({
-          style: CFG.VECTOR_STYLE_URL,
-          attribution: '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">© OpenMapTiles</a> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>',
+          style: 'assets/map-style.json?v=2.0.0',
+          attribution: '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>',
         });
         let vectorReady = false;
         vector.on('add', () => {
           const gl = vector.getMaplibreMap();
           if (!gl) return;
-          gl.once('load', () => { vectorReady = true; });
-          gl.on('style.load', () => localizeLabels(gl));
+          gl.once('load', () => { vectorReady = true; applyIllustratedTheme(gl); });
+          gl.on('style.load', () => { localizeLabels(gl); applyIllustratedTheme(gl); });
           gl.on('error', (e) => {
             if (vectorReady) return;
-            console.warn('ベクター地図の読み込みに失敗。地理院タイルに切り替えます', e && e.error);
+            console.warn('ベクター地図の読み込みに失敗。概略イラスト地図に切り替えます', e && e.error);
             vectorReady = true;
             try { map.removeLayer(vector); } catch (err) { /* noop */ }
-            if (!map.hasLayer(gsi)) gsi.addTo(map);
+            if (!map.hasLayer(illustrated)) illustrated.addTo(map);
           });
         });
       } catch (e) { console.warn('ベクター地図を初期化できません', e); vector = null; }
     }
-    if (vector) bases['標準地図（OpenFreeMap）'] = vector;
+    if (vector) bases['イラスト地図（OpenFreeMap）'] = vector;
+    bases['概略イラスト地図'] = illustrated;
     bases['淡色地図（地理院）'] = gsi; bases['OpenStreetMap'] = osm; bases['空中写真（地理院）'] = photo;
-    const first = CFG.BASEMAP === 'osm' ? osm : CFG.BASEMAP === 'gsi' ? gsi : (vector || gsi);
-    try { first.addTo(map); } catch (e) { console.warn('ベースマップの追加に失敗。地理院タイルを使います', e); gsi.addTo(map); }
+    const first = CFG.BASEMAP === 'osm' ? osm : CFG.BASEMAP === 'gsi' ? gsi : (vector || illustrated);
+    try { first.addTo(map); } catch (e) { console.warn('ベースマップの追加に失敗。概略イラスト地図を使います', e); illustrated.addTo(map); }
     L.control.layers(bases, null, { position: 'topleft' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     L.control.scale({ imperial: false, position: 'bottomright' }).addTo(map);
     const layer = L.layerGroup().addTo(map);
     let me = null;
-    const divIcon = (html) => L.divIcon({ className: 'pin-icon', iconSize: [30, 30], iconAnchor: [15, 28], tooltipAnchor: [10, -14], html });
+    const divIcon = (html) => L.divIcon({ className: 'pin-icon', iconSize: [42, 48], iconAnchor: [21, 45], tooltipAnchor: [10, -18], html });
     return {
       engine: 'leaflet',
       setView: (lat, lng, zoom) => map.setView([lat, lng], zoom == null ? map.getZoom() : zoom),
       panTo: (lat, lng) => map.panTo([lat, lng]),
+      getCenter: () => { const c = map.getCenter(); return { lat: c.lat, lng: c.lng }; },
       getZoom: () => map.getZoom(),
       contains: (lat, lng) => map.getBounds().contains([lat, lng]),
       fitBounds: (points, opts) => map.fitBounds(points, { padding: [(opts && opts.padding) || 40, (opts && opts.padding) || 40], maxZoom: (opts && opts.maxZoom) || 16 }),
@@ -517,9 +576,42 @@
       },
       invalidateSize: () => map.invalidateSize(),
       setCursor: (css) => { $('#map').style.cursor = css || ''; },
+      setTheme: () => { if (vector && vector.getMaplibreMap) applyIllustratedTheme(vector.getMaplibreMap()); },
       onMoveEnd: (fn) => map.on('moveend', fn),
       onClick: (fn) => map.on('click', (e) => fn(e.latlng.lat, e.latlng.lng)),
+      destroy: () => map.remove(),
     };
+  }
+
+  function isDarkTheme() {
+    return document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+
+  function applyIllustratedTheme(gl) {
+    if (!gl || !gl.getStyle || !gl.isStyleLoaded || !gl.isStyleLoaded()) return;
+    const dark = isDarkTheme();
+    const colors = dark ? {
+      background: '#211c1d', residential: '#2c2527', wood: '#26352f', grass: '#29342e', park: '#2c3b33', water: '#24434b', waterway: '#3e6871',
+      rail: '#6e6262', roadCasing: '#483b3d', motorway: '#704c49', primary: '#684845', secondary: '#5a4241', road: '#403638', building: '#3a3032', buildingLine: '#4b3d3f',
+      boundary: '#69585a', pencil: '#967a75', waterText: '#87b5bd', waterHalo: '#23383d', roadText: '#c7b8b5', roadHalo: '#2a2224', minorText: '#aa9a98', placeText: '#dbcac7', placeHalo: '#211c1d',
+    } : {
+      background: '#f8edda', residential: '#f4e3df', wood: '#cfdcc8', grass: '#e0e8d5', park: '#d7e3d0', water: '#cae4e9', waterway: '#acd3db',
+      rail: '#baaead', roadCasing: '#d8bfb4', motorway: '#eab6aa', primary: '#f0c9bd', secondary: '#f3dbd3', road: '#fff8ec', building: '#ead4ce', buildingLine: '#cfb5ad',
+      boundary: '#c9b8b4', pencil: '#b9998d', waterText: '#729ca5', waterHalo: '#edf7f8', roadText: '#8a7976', roadHalo: '#fff8ec', minorText: '#9c8e8a', placeText: '#6f5d58', placeHalo: '#f8edda',
+    };
+    const paint = (id, prop, value) => { if (gl.getLayer(id)) gl.setPaintProperty(id, prop, value); };
+    paint('background', 'background-color', colors.background);
+    paint('landuse-residential', 'fill-color', colors.residential); paint('landcover-wood', 'fill-color', colors.wood);
+    paint('landcover-grass', 'fill-color', colors.grass); paint('park', 'fill-color', colors.park);
+    paint('water', 'fill-color', colors.water); paint('waterway', 'line-color', colors.waterway); paint('rail', 'line-color', colors.rail);
+    paint('road-casing', 'line-color', colors.roadCasing);
+    paint('roads', 'line-color', ['match', ['get', 'class'], ['motorway', 'trunk'], colors.motorway, 'primary', colors.primary, ['secondary', 'tertiary'], colors.secondary, colors.road]);
+    paint('roads-pencil', 'line-color', colors.pencil);
+    paint('buildings', 'fill-color', colors.building); paint('buildings', 'fill-outline-color', colors.buildingLine); paint('boundaries', 'line-color', colors.boundary);
+    paint('water-labels', 'text-color', colors.waterText); paint('water-labels', 'text-halo-color', colors.waterHalo);
+    paint('road-labels-major', 'text-color', colors.roadText); paint('road-labels-major', 'text-halo-color', colors.roadHalo);
+    paint('road-labels-minor', 'text-color', colors.minorText); paint('road-labels-minor', 'text-halo-color', colors.roadHalo);
+    paint('place-labels', 'text-color', colors.placeText); paint('place-labels', 'text-halo-color', colors.placeHalo);
   }
 
   // ベクター地図のラベルを日本語優先にする（name:ja → name）
@@ -541,9 +633,7 @@
     if (p.geo_precision !== 'exact') cls.push('approx');
     if (!isConfirmed(p)) cls.push('unverified');
     if (selected) cls.push('selected');
-    const catchText = String(p.catch || '').trim();
-    return '<div class="' + cls.join(' ') + '" style="--c:' + catVar(p.category) + '"><div class="pin-body"></div><div class="pin-label">' + CAT_LETTER[p.category] + '</div>' +
-      '<div class="pin-popover"><strong>' + esc(p.name) + '</strong>' + (catchText ? '<span>' + esc(catchText) + '</span>' : '') + '</div></div>';
+    return '<div class="' + cls.join(' ') + '" style="--c:' + catVar(p.category) + '"><div class="pin-body"><span class="pin-label">' + I.icon(p.category, 'pin-illust') + '</span></div></div>';
   }
   function setMarkerSelected(id, selected) {
     const h = state.markers[id]; const p = state.byId[id];
@@ -559,6 +649,34 @@
     const r = 0.00038 * Math.sqrt(i + 1);           // 約40m × √n
     const t = i * 2.39996;                            // 黄金角で螺旋状に配置
     return [p.lat + r * Math.sin(t), p.lng + (r * Math.cos(t)) / Math.cos((p.lat * Math.PI) / 180)];
+  }
+
+  function closeMapCard(opts) {
+    const id = state.mapCardId;
+    state.mapCardId = null;
+    const card = $('#map-place-card'); if (card) { card.hidden = true; card.innerHTML = ''; }
+    if (id && (!opts || !opts.preserveMarker) && id !== state.selectedId) setMarkerSelected(id, false);
+  }
+
+  function openMapCard(p) {
+    if (!p) return;
+    const previous = state.mapCardId;
+    if (previous && previous !== p.id && previous !== state.selectedId) setMarkerSelected(previous, false);
+    state.mapCardId = p.id;
+    setMarkerSelected(p.id, true);
+    const style = p.yudofu_style || {};
+    const tare = Array.isArray(style.tare) ? style.tare : [];
+    const price = p.price_min != null ? '<div class="map-card-price"><strong>' + yen(p.price_min) + (p.price_max !== p.price_min ? '〜' : '') + '</strong>' + (p.price_item ? '<span>' + esc(p.price_item) + '</span>' : '') + '</div>' : '';
+    const card = $('#map-place-card');
+    card.innerHTML = '<button type="button" class="map-card-close" aria-label="カードを閉じる">×</button>' +
+      '<div class="map-card-heading"><span class="map-card-icon" style="--c:' + catVar(p.category) + '">' + I.icon(p.category, 'map-card-illust') + '</span><div><span class="map-card-category">' + esc(catLabel(p.category)) + '</span><h3>' + esc(p.name) + '</h3>' + (p.catch ? '<p>' + esc(p.catch) + '</p>' : '') + '</div></div>' +
+      price + (tare.length ? '<div class="map-card-tare"><span>たれ</span>' + tare.map((item) => '<b>' + esc(item) + '</b>').join('') + '</div>' : '') +
+      '<div class="map-card-actions"><button type="button" class="btn btn-primary" data-map-card-detail>詳細を見る</button>' +
+      '<a class="btn" href="' + esc(gmapsUrl(p)) + '" target="_blank" rel="noopener noreferrer">Google マップ</a>' +
+      '<a class="btn" href="' + esc(appleMapsUrl(p)) + '" target="_blank" rel="noopener noreferrer">Apple マップ</a></div>';
+    card.hidden = false;
+    $('.map-card-close', card).addEventListener('click', closeMapCard);
+    $('[data-map-card-detail]', card).addEventListener('click', () => selectPlace(p.id, { pan: false, scroll: false }));
   }
 
   function renderMarkers() {
@@ -577,11 +695,11 @@
       const k = p.lat.toFixed(5) + ',' + p.lng.toFixed(5);
       const g = { n: groups[k].length, i: groups[k].indexOf(p.id) };
       const ll = displayLatLng(p, g);
-      const selected = p.id === state.selectedId;
+      const selected = p.id === state.selectedId || p.id === state.mapCardId;
       state.markers[p.id] = state.map.addMarker({
         lat: ll[0], lng: ll[1], html: pinHtml(p, selected), zIndex: selected ? 1000 : 0,
         title: p.name + (p.catch ? ' — ' + p.catch : '') + (p.price_min != null ? '　' + yen(p.price_min) + '〜' : '') + (p.geo_precision !== 'exact' ? '（位置は概略）' : ''),
-        onClick: () => selectPlace(p.id, { pan: false }),
+        onClick: () => openMapCard(p),
       });
     });
   }
@@ -717,7 +835,9 @@
   }
 
   function applyFilters(opts) {
+    if (!(opts && opts.keepListLimit)) state.listLimit = 10;
     state.visible = sortPlaces(state.all.filter(matches));
+    if (state.mapCardId && !state.visible.some((p) => p.id === state.mapCardId)) closeMapCard();
     renderList();
     renderMarkers();
     renderLegend();
@@ -749,7 +869,7 @@
     state.visible.forEach((p) => { counts[p.category] = (counts[p.category] || 0) + 1; });
     el.innerHTML = CAT_ORDER.filter((c) => state.all.some((p) => p.category === c)).map((c) => {
       const off = state.filters.cats.size && !state.filters.cats.has(c);
-      return '<div class="legend-item' + (off ? ' off' : '') + '" data-cat="' + c + '" style="--c:' + catVar(c) + '" role="button" tabindex="0"><span class="dot"></span>' + esc(catLabel(c)) + ' <span class="muted">' + (counts[c] || 0) + '</span></div>';
+      return '<div class="legend-item' + (off ? ' off' : '') + '" data-cat="' + c + '" style="--c:' + catVar(c) + '" role="button" tabindex="0"><span class="legend-icon">' + I.icon(c, 'legend-illust') + '</span>' + esc(catLabel(c)) + ' <span class="muted">' + (counts[c] || 0) + '</span></div>';
     }).join('') + '<div class="legend-note">白抜き＝提供未確認／点線＝位置は概略</div>';
   }
 
@@ -778,7 +898,8 @@
       $('#btn-reset-inline').addEventListener('click', resetFilters);
       return;
     }
-    ol.innerHTML = state.visible.map((p) => {
+    const shown = state.visible.slice(0, state.listLimit);
+    ol.innerHTML = shown.map((p) => {
       const menuNames = p.menu.slice(0, 2).map((m) => esc(m.name) + (m.price != null ? ' ' + yen(m.price) : '')).join(' / ');
       const tare = p.yudofu_style && Array.isArray(p.yudofu_style.tare) ? p.yudofu_style.tare : [];
       const tareLine = tare.length ? '<div class="card-tare"><span class="card-tare-label">たれ</span><span class="card-tare-values">' + esc(tare.join('・')) + '</span></div>' : '';
@@ -800,6 +921,14 @@
         tareLine +
         '</div></li>';
     }).join('');
+    if (shown.length < state.visible.length) {
+      const rest = state.visible.length - shown.length;
+      ol.insertAdjacentHTML('beforeend', '<li class="list-more"><button type="button" class="btn" id="btn-list-more">さらに表示 <span>残り' + rest + '件</span></button></li>');
+      $('#btn-list-more').addEventListener('click', () => {
+        state.listLimit = Math.min(state.visible.length, state.listLimit + 10);
+        renderList();
+      });
+    }
     observeCardPhotos(ol);
   }
 
@@ -807,6 +936,12 @@
   function selectPlace(id, opts) {
     const p = state.byId[id];
     if (!p) return;
+    const listIndex = state.visible.findIndex((q) => q.id === id);
+    if (listIndex >= state.listLimit) {
+      state.listLimit = Math.ceil((listIndex + 1) / 10) * 10;
+      renderList();
+    }
+    if (state.mapCardId) closeMapCard({ preserveMarker: state.mapCardId === id });
     const prev = state.selectedId;
     state.selectedId = id;
     if (prev && prev !== id) setMarkerSelected(prev, false);
@@ -842,7 +977,15 @@
   }
   function gmapsUrl(p) {
     if (p.urls.google_maps) return p.urls.google_maps;
-    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.name + ' ' + (p.address || '嬉野市'));
+    let url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.name + ' 嬉野' + (p.address ? ' ' + p.address : ''));
+    if (p.google_place_id) url += '&query_place_id=' + encodeURIComponent(p.google_place_id);
+    return url;
+  }
+  function appleMapsUrl(p) {
+    let url = 'https://maps.apple.com/?q=' + encodeURIComponent(p.name);
+    if (hasGeo(p)) url += '&ll=' + encodeURIComponent(p.lat + ',' + p.lng);
+    else if (p.address) url += '&address=' + encodeURIComponent(p.address);
+    return url;
   }
 
   function renderYudofuStyle(p) {
@@ -868,7 +1011,7 @@
     badges.push('<span class="badge" title="情報の確からしさ">確信度: ' + esc(S.CONFIDENCE[p.confidence] || '中') + '</span>');
 
     const kv = [];
-    if (p.address) kv.push(['住所', esc(p.address) + ' ' + linkOut(gmapsUrl(p), '地図アプリで開く')]);
+    if (p.address) kv.push(['住所', esc(p.address) + '<span class="map-app-links">' + linkOut(gmapsUrl(p), 'Google マップ') + ' · ' + linkOut(appleMapsUrl(p), 'Apple マップ') + '</span>']);
     if (state.me && hasGeo(p)) kv.push(['現在地から', esc(fmtDistance(distanceM(p))) + '（現在地と登録座標からの概算）']);
     if (p.tel) kv.push(['電話', '<a href="tel:' + esc(p.tel.replace(/[^\d+]/g, '')) + '">' + esc(p.tel) + '</a>']);
     if (p.hours) kv.push(['営業時間', esc(p.hours)]);
@@ -898,7 +1041,8 @@
       priceSummary,
       renderYudofuStyle(p),
       '<div class="detail-actions">',
-      '<a class="btn btn-primary" href="' + esc(gmapsUrl(p)) + '" target="_blank" rel="noopener noreferrer">地図アプリで開く</a>',
+      '<a class="btn btn-primary" href="' + esc(gmapsUrl(p)) + '" target="_blank" rel="noopener noreferrer">Google マップ</a>',
+      '<a class="btn" href="' + esc(appleMapsUrl(p)) + '" target="_blank" rel="noopener noreferrer">Apple マップ</a>',
       hasGeo(p) ? '<a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=' + p.lat + ',' + p.lng + '" target="_blank" rel="noopener noreferrer">経路</a>' : '',
       p.urls.official ? '<a class="btn" href="' + esc(p.urls.official) + '" target="_blank" rel="noopener noreferrer">公式サイト</a>' : '',
       '<button type="button" class="btn" id="btn-share">共有</button>',
@@ -1139,6 +1283,8 @@
     $('#list').addEventListener('keydown', (e) => { const card = e.target.closest('.card'); if (card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selectPlace(card.dataset.id, { pan: true, scroll: false }); } });
     $('#btn-locate').addEventListener('click', locateMe);
     $('#btn-fit').addEventListener('click', () => fitAll({ core: false }));
+    $('#btn-map-illustrated').addEventListener('click', () => switchMapEngine('illustrated'));
+    $('#btn-map-google').addEventListener('click', () => switchMapEngine('google'));
     $('#btn-contribute').addEventListener('click', () => openContribute('new', null));
     $('#btn-contribute-bottom').addEventListener('click', () => openContribute('new', null));
     $('#btn-about').addEventListener('click', openAbout);
@@ -1168,7 +1314,7 @@
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
       const open = $$('.modal').find((m) => !m.hidden);
-      if (open) open.hidden = true; else if (state.pick) finishPick(null); else if (state.selectedId) closeDetail();
+      if (open) open.hidden = true; else if (state.pick) finishPick(null); else if (state.mapCardId) closeMapCard(); else if (state.selectedId) closeDetail();
     });
     $$('.mobile-tabs .tab').forEach((t) => t.addEventListener('click', () => {
       if (t.dataset.view === 'contribute') { openContribute('new', null); return; }
