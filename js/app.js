@@ -350,7 +350,7 @@
   }
 
   function bindMapEvents() {
-    state.map.onMoveEnd(() => { if (state.filters.bounds) applyFilters({}); });
+    state.map.onMoveEnd(() => { if (state.filters.bounds) applyFilters({ keepListLimit: true }); });   // 地図を動かしただけでは「さらに表示」で広げた件数を戻さない
     state.map.onClick((lat, lng) => {
       if (state.pick) finishPick({ lat, lng });
       else closeMapCard();
@@ -675,6 +675,7 @@
       '<a class="btn" href="' + esc(gmapsUrl(p)) + '" target="_blank" rel="noopener noreferrer">Google マップ</a>' +
       '<a class="btn" href="' + esc(appleMapsUrl(p)) + '" target="_blank" rel="noopener noreferrer">Apple マップ</a></div>';
     card.hidden = false;
+    if (matchMedia('(max-width: 600px)').matches && hasGeo(p)) state.map.panTo(p.lat, p.lng);   // スマホではカードの上にピンが見えるよう寄せる
     $('.map-card-close', card).addEventListener('click', closeMapCard);
     $('[data-map-card-detail]', card).addEventListener('click', () => selectPlace(p.id, { pan: false, scroll: false }));
   }

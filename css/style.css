@@ -699,3 +699,19 @@ h1, h2 { font-family: var(--font-title); font-weight: 700; }
   .leaflet-control-attribution { bottom: calc(66px + env(safe-area-inset-bottom)); max-width: 82vw; font-size: .56rem; }
   .map-wrap:has(.map-place-card:not([hidden])) .leaflet-control-attribution { bottom: calc(380px + env(safe-area-inset-bottom)); }
 }
+@media (max-width: 600px) {
+  /* スマホでは地図を隠さないよう、カードを店名・価格・ボタンの3段に縮める */
+  .map-place-card { width: calc(100% - 16px); padding: 10px 12px; border-radius: 18px; }
+  .map-card-close { top: 8px; right: 8px; width: 28px; height: 28px; }
+  .map-card-heading { grid-template-columns: 34px minmax(0, 1fr); gap: 8px; padding-right: 30px; align-items: center; }
+  .map-card-icon { width: 34px; height: 34px; border-radius: 11px; }
+  .map-card-illust { width: 20px; height: 20px; }
+  .map-card-category, .map-card-heading p, .map-card-tare { display: none; }
+  .map-place-card h3 { overflow: hidden; font-size: 1rem; text-overflow: ellipsis; white-space: nowrap; }
+  .map-card-price { margin: 4px 0 0 42px; }
+  .map-card-price strong { font-size: .98rem; }
+  .map-card-actions { grid-template-columns: 1.2fr 1fr 1fr; gap: 6px; margin-top: 8px; }
+  .map-card-actions [data-map-card-detail] { grid-column: auto; }
+  .map-card-actions .btn { padding: 6px 8px; font-size: .72rem; }
+  .map-wrap:has(.map-place-card:not([hidden])) .leaflet-control-attribution { bottom: calc(220px + env(safe-area-inset-bottom)); }
+}
