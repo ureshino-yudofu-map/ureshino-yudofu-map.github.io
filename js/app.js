@@ -20,7 +20,7 @@
     media: { items: [], byPlace: {}, general: [], yudofu: [] }, mediaObserver: null,
     heroPhotosStarted: false, cardPhotoCache: {}, cardPhotoObserver: null,
     filters: { q: '', cats: new Set(), tares: new Set(), svcs: new Set(), tofu: '', price: PRICE_MAX, unverified: true, bounds: false, media: false },
-    sort: 'category',
+    sort: 'category', listLimit: 10,
   };
 
   const $ = (sel, root) => (root || document).querySelector(sel);
@@ -505,6 +505,10 @@
   // ---- OpenFreeMap（MapLibre を Leaflet の共通操作層に載せる） -----------------------------
   function createLeafletMap() {
     const map = L.map('map', { zoomControl: false, center: CFG.MAP_CENTER, zoom: CFG.MAP_ZOOM, preferCanvas: false });
+    const illustrated = L.imageOverlay('assets/ureshino-illustrated-map.svg?v=2.0.0', [[33.065, 129.950], [33.135, 130.045]], {
+      opacity: 1, interactive: false,
+      attribution: '<span>概略イラスト</span> · <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>',
+    });
     const gsi = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
       maxZoom: 18, attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>',
     });
@@ -514,14 +518,14 @@
     const photo = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
       maxZoom: 18, attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル（写真）</a>',
     });
-    // ベクター地図（OpenFreeMap: 鍵・費用不要）。WebGL が使えない端末や取得失敗時は地理院タイルに切り替える
+    // ベクター地図（OpenFreeMap: 鍵・費用不要）。WebGL 非対応時も通常の地図へ戻さず、概略イラストを表示する。
     const bases = {};
     let vector = null;
     const vectorSupported = typeof maplibregl !== 'undefined' && typeof maplibregl.supported === 'function' && maplibregl.supported();
     if (CFG.BASEMAP === 'vector' && typeof L.maplibreGL === 'function' && vectorSupported) {
       try {
         vector = L.maplibreGL({
-          style: 'assets/map-style.json?v=1.0.0',
+          style: 'assets/map-style.json?v=2.0.0',
           attribution: '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>',
         });
         let vectorReady = false;
@@ -532,18 +536,19 @@
           gl.on('style.load', () => { localizeLabels(gl); applyIllustratedTheme(gl); });
           gl.on('error', (e) => {
             if (vectorReady) return;
-            console.warn('ベクター地図の読み込みに失敗。地理院タイルに切り替えます', e && e.error);
+            console.warn('ベクター地図の読み込みに失敗。概略イラスト地図に切り替えます', e && e.error);
             vectorReady = true;
             try { map.removeLayer(vector); } catch (err) { /* noop */ }
-            if (!map.hasLayer(gsi)) gsi.addTo(map);
+            if (!map.hasLayer(illustrated)) illustrated.addTo(map);
           });
         });
       } catch (e) { console.warn('ベクター地図を初期化できません', e); vector = null; }
     }
     if (vector) bases['イラスト地図（OpenFreeMap）'] = vector;
+    bases['概略イラスト地図'] = illustrated;
     bases['淡色地図（地理院）'] = gsi; bases['OpenStreetMap'] = osm; bases['空中写真（地理院）'] = photo;
-    const first = CFG.BASEMAP === 'osm' ? osm : CFG.BASEMAP === 'gsi' ? gsi : (vector || gsi);
-    try { first.addTo(map); } catch (e) { console.warn('ベースマップの追加に失敗。地理院タイルを使います', e); gsi.addTo(map); }
+    const first = CFG.BASEMAP === 'osm' ? osm : CFG.BASEMAP === 'gsi' ? gsi : (vector || illustrated);
+    try { first.addTo(map); } catch (e) { console.warn('ベースマップの追加に失敗。概略イラスト地図を使います', e); illustrated.addTo(map); }
     L.control.layers(bases, null, { position: 'topleft' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     L.control.scale({ imperial: false, position: 'bottomright' }).addTo(map);
@@ -588,11 +593,11 @@
     const colors = dark ? {
       background: '#211c1d', residential: '#2c2527', wood: '#26352f', grass: '#29342e', park: '#2c3b33', water: '#24434b', waterway: '#3e6871',
       rail: '#6e6262', roadCasing: '#483b3d', motorway: '#704c49', primary: '#684845', secondary: '#5a4241', road: '#403638', building: '#3a3032', buildingLine: '#4b3d3f',
-      boundary: '#69585a', waterText: '#87b5bd', waterHalo: '#23383d', roadText: '#c7b8b5', roadHalo: '#2a2224', minorText: '#aa9a98', placeText: '#dbcac7', placeHalo: '#211c1d',
+      boundary: '#69585a', pencil: '#967a75', waterText: '#87b5bd', waterHalo: '#23383d', roadText: '#c7b8b5', roadHalo: '#2a2224', minorText: '#aa9a98', placeText: '#dbcac7', placeHalo: '#211c1d',
     } : {
-      background: '#fbf6f1', residential: '#f7eeeb', wood: '#dce8df', grass: '#eaf0e7', park: '#e1ecdf', water: '#cfe7ed', waterway: '#b7dce5',
-      rail: '#baaead', roadCasing: '#e5d7d2', motorway: '#efc4ba', primary: '#f3d1c7', secondary: '#f7e1db', road: '#fffaf6', building: '#eadeda', buildingLine: '#dfcfca',
-      boundary: '#c9b8b4', waterText: '#729ca5', waterHalo: '#edf7f8', roadText: '#8a7976', roadHalo: '#fffaf6', minorText: '#9c8e8a', placeText: '#6f625f', placeHalo: '#fbf6f1',
+      background: '#f8edda', residential: '#f4e3df', wood: '#cfdcc8', grass: '#e0e8d5', park: '#d7e3d0', water: '#cae4e9', waterway: '#acd3db',
+      rail: '#baaead', roadCasing: '#d8bfb4', motorway: '#eab6aa', primary: '#f0c9bd', secondary: '#f3dbd3', road: '#fff8ec', building: '#ead4ce', buildingLine: '#cfb5ad',
+      boundary: '#c9b8b4', pencil: '#b9998d', waterText: '#729ca5', waterHalo: '#edf7f8', roadText: '#8a7976', roadHalo: '#fff8ec', minorText: '#9c8e8a', placeText: '#6f5d58', placeHalo: '#f8edda',
     };
     const paint = (id, prop, value) => { if (gl.getLayer(id)) gl.setPaintProperty(id, prop, value); };
     paint('background', 'background-color', colors.background);
@@ -601,6 +606,7 @@
     paint('water', 'fill-color', colors.water); paint('waterway', 'line-color', colors.waterway); paint('rail', 'line-color', colors.rail);
     paint('road-casing', 'line-color', colors.roadCasing);
     paint('roads', 'line-color', ['match', ['get', 'class'], ['motorway', 'trunk'], colors.motorway, 'primary', colors.primary, ['secondary', 'tertiary'], colors.secondary, colors.road]);
+    paint('roads-pencil', 'line-color', colors.pencil);
     paint('buildings', 'fill-color', colors.building); paint('buildings', 'fill-outline-color', colors.buildingLine); paint('boundaries', 'line-color', colors.boundary);
     paint('water-labels', 'text-color', colors.waterText); paint('water-labels', 'text-halo-color', colors.waterHalo);
     paint('road-labels-major', 'text-color', colors.roadText); paint('road-labels-major', 'text-halo-color', colors.roadHalo);
@@ -829,6 +835,7 @@
   }
 
   function applyFilters(opts) {
+    if (!(opts && opts.keepListLimit)) state.listLimit = 10;
     state.visible = sortPlaces(state.all.filter(matches));
     if (state.mapCardId && !state.visible.some((p) => p.id === state.mapCardId)) closeMapCard();
     renderList();
@@ -891,7 +898,8 @@
       $('#btn-reset-inline').addEventListener('click', resetFilters);
       return;
     }
-    ol.innerHTML = state.visible.map((p) => {
+    const shown = state.visible.slice(0, state.listLimit);
+    ol.innerHTML = shown.map((p) => {
       const menuNames = p.menu.slice(0, 2).map((m) => esc(m.name) + (m.price != null ? ' ' + yen(m.price) : '')).join(' / ');
       const tare = p.yudofu_style && Array.isArray(p.yudofu_style.tare) ? p.yudofu_style.tare : [];
       const tareLine = tare.length ? '<div class="card-tare"><span class="card-tare-label">たれ</span><span class="card-tare-values">' + esc(tare.join('・')) + '</span></div>' : '';
@@ -913,6 +921,14 @@
         tareLine +
         '</div></li>';
     }).join('');
+    if (shown.length < state.visible.length) {
+      const rest = state.visible.length - shown.length;
+      ol.insertAdjacentHTML('beforeend', '<li class="list-more"><button type="button" class="btn" id="btn-list-more">さらに表示 <span>残り' + rest + '件</span></button></li>');
+      $('#btn-list-more').addEventListener('click', () => {
+        state.listLimit = Math.min(state.visible.length, state.listLimit + 10);
+        renderList();
+      });
+    }
     observeCardPhotos(ol);
   }
 
@@ -920,6 +936,11 @@
   function selectPlace(id, opts) {
     const p = state.byId[id];
     if (!p) return;
+    const listIndex = state.visible.findIndex((q) => q.id === id);
+    if (listIndex >= state.listLimit) {
+      state.listLimit = Math.ceil((listIndex + 1) / 10) * 10;
+      renderList();
+    }
     if (state.mapCardId) closeMapCard({ preserveMarker: state.mapCardId === id });
     const prev = state.selectedId;
     state.selectedId = id;

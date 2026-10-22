@@ -2,8 +2,8 @@
   "version": 8,
   "name": "Ureshino Yudofu Illustrated Map",
   "metadata": {
-    "style-version": "1.0.0",
-    "description": "Pink, cream and sage illustrated map for the Ureshino Onsen Yudofu Map"
+    "style-version": "2.0.0",
+    "description": "Paper-like pink, cream and sage illustrated map for the Ureshino Onsen Yudofu Map"
   },
   "sources": {
     "openmaptiles": {
@@ -17,7 +17,7 @@
     {
       "id": "background",
       "type": "background",
-      "paint": { "background-color": "#fbf6f1" }
+      "paint": { "background-color": "#f8edda" }
     },
     {
       "id": "landuse-residential",
@@ -25,7 +25,7 @@
       "source": "openmaptiles",
       "source-layer": "landuse",
       "filter": ["==", ["get", "class"], "residential"],
-      "paint": { "fill-color": "#f7eeeb", "fill-opacity": 0.72 }
+      "paint": { "fill-color": "#f4e3df", "fill-opacity": 0.8 }
     },
     {
       "id": "landcover-wood",
@@ -33,7 +33,7 @@
       "source": "openmaptiles",
       "source-layer": "landcover",
       "filter": ["==", ["get", "class"], "wood"],
-      "paint": { "fill-color": "#dce8df", "fill-opacity": 0.84 }
+      "paint": { "fill-color": "#cfdcc8", "fill-opacity": 0.9, "fill-outline-color": "#b9cbb4" }
     },
     {
       "id": "landcover-grass",
@@ -41,14 +41,14 @@
       "source": "openmaptiles",
       "source-layer": "landcover",
       "filter": ["in", ["get", "class"], ["literal", ["grass", "farmland", "meadow"]]],
-      "paint": { "fill-color": "#eaf0e7", "fill-opacity": 0.8 }
+      "paint": { "fill-color": "#e0e8d5", "fill-opacity": 0.86, "fill-outline-color": "#cbd8c2" }
     },
     {
       "id": "park",
       "type": "fill",
       "source": "openmaptiles",
       "source-layer": "park",
-      "paint": { "fill-color": "#e1ecdf", "fill-opacity": 0.9 }
+      "paint": { "fill-color": "#d7e3d0", "fill-opacity": 0.94, "fill-outline-color": "#bdcfb7" }
     },
     {
       "id": "water",
@@ -56,7 +56,7 @@
       "source": "openmaptiles",
       "source-layer": "water",
       "filter": ["!=", ["get", "brunnel"], "tunnel"],
-      "paint": { "fill-color": "#cfe7ed" }
+      "paint": { "fill-color": "#cae4e9", "fill-outline-color": "#9fc8d1" }
     },
     {
       "id": "waterway",
@@ -92,7 +92,7 @@
       "filter": ["in", ["get", "class"], ["literal", ["motorway", "trunk", "primary", "secondary", "tertiary", "minor", "service", "track", "path", "pedestrian"]]],
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
-        "line-color": "#e5d7d2",
+        "line-color": "#d8bfb4",
         "line-opacity": 0.74,
         "line-width": [
           "interpolate", ["exponential", 1.2], ["zoom"],
@@ -110,7 +110,7 @@
       "filter": ["in", ["get", "class"], ["literal", ["motorway", "trunk", "primary", "secondary", "tertiary", "minor", "service", "track", "path", "pedestrian"]]],
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
-        "line-color": ["match", ["get", "class"], ["motorway", "trunk"], "#efc4ba", "primary", "#f3d1c7", ["secondary", "tertiary"], "#f7e1db", "#fffaf6"],
+        "line-color": ["match", ["get", "class"], ["motorway", "trunk"], "#eab6aa", "primary", "#f0c9bd", ["secondary", "tertiary"], "#f3dbd3", "#fff8ec"],
         "line-opacity": ["match", ["get", "class"], ["track", "path", "pedestrian"], 0.72, 0.96],
         "line-width": [
           "interpolate", ["exponential", 1.2], ["zoom"],
@@ -121,15 +121,30 @@
       }
     },
     {
+      "id": "roads-pencil",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "minzoom": 12,
+      "filter": ["in", ["get", "class"], ["literal", ["secondary", "tertiary", "minor", "service", "path", "pedestrian"]]],
+      "layout": { "line-cap": "round", "line-join": "round" },
+      "paint": {
+        "line-color": "#b9998d",
+        "line-opacity": 0.22,
+        "line-dasharray": [0.7, 2.3],
+        "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.35, 17, 1.1]
+      }
+    },
+    {
       "id": "buildings",
       "type": "fill",
       "source": "openmaptiles",
       "source-layer": "building",
       "minzoom": 13,
       "paint": {
-        "fill-color": "#eadeda",
+        "fill-color": "#ead4ce",
         "fill-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0.46, 16, 0.72],
-        "fill-outline-color": "#dfcfca"
+        "fill-outline-color": "#cfb5ad"
       }
     },
     {
@@ -201,7 +216,7 @@
         "text-max-width": 8,
         "text-letter-spacing": 0.04
       },
-      "paint": { "text-color": "#6f625f", "text-halo-color": "#fbf6f1", "text-halo-width": 1.5, "text-halo-blur": 0.3 }
+      "paint": { "text-color": "#6f5d58", "text-halo-color": "#f8edda", "text-halo-width": 1.7, "text-halo-blur": 0.3 }
     }
   ]
 }

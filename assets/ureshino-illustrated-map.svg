@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1100" role="img" aria-labelledby="title desc">
+  <title id="title">嬉野温泉街の概略イラスト地図</title>
+  <desc id="desc">山あいの温泉街、川、主要な道を柔らかな色と手描き風の線で表現した概略地図</desc>
+  <defs>
+    <pattern id="paper" width="32" height="32" patternUnits="userSpaceOnUse">
+      <rect width="32" height="32" fill="#f8edda"/>
+      <circle cx="6" cy="9" r="1.2" fill="#d9c9ae" opacity=".16"/>
+      <circle cx="23" cy="25" r=".9" fill="#d9c9ae" opacity=".12"/>
+      <path d="M0 18c7-3 13 3 21 0s8-2 11-1" fill="none" stroke="#fffaf0" stroke-width="1" opacity=".45"/>
+    </pattern>
+    <pattern id="fields" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(-14)">
+      <rect width="28" height="28" fill="#e4ead9"/>
+      <path d="M0 7h28M0 21h28" stroke="#cad7bd" stroke-width="2" opacity=".55"/>
+    </pattern>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#725b4e" flood-opacity=".16"/>
+    </filter>
+    <g id="tree">
+      <path d="M0 18V31" stroke="#745b4b" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="0" cy="11" r="12" fill="#9ab19b" stroke="#667f72" stroke-width="3"/>
+      <circle cx="-8" cy="15" r="7" fill="#aec0a4"/>
+    </g>
+    <g id="house">
+      <path d="M-19 1 0-15 19 1v22h-38z" fill="#ead6cf" stroke="#b99386" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M-24 2 0-20 24 2" fill="none" stroke="#9d7668" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="-5" y="8" width="10" height="15" rx="2" fill="#b99386"/>
+    </g>
+  </defs>
+
+  <rect width="1600" height="1100" fill="url(#paper)"/>
+
+  <path d="M0 0h440c-12 120-104 152-168 245S92 353 0 330z" fill="#cad9c3"/>
+  <path d="M0 78c123 15 166 55 231 130s136 34 210 7" fill="none" stroke="#aec2aa" stroke-width="8" stroke-linecap="round" opacity=".75"/>
+  <path d="M1120 0h480v360c-80-8-121-67-197-106s-164-60-283-48z" fill="#d8e2cd"/>
+  <path d="M1188 58c116 5 164 65 228 109s104 38 184 23" fill="none" stroke="#b7c9b0" stroke-width="8" stroke-linecap="round" opacity=".72"/>
+  <path d="M0 775c125-58 240-72 351-16s183 61 318 7 251-20 333 42 179 76 288 39 193-64 310-43v296H0z" fill="#d6e2ce"/>
+  <path d="M34 904c158-94 265-45 370-8s190 34 301-27 216-44 314 17 209 64 320 7 172-46 261-20" fill="none" stroke="#b7c9b0" stroke-width="9" stroke-linecap="round" opacity=".7"/>
+  <path d="M1032 268c189-65 400-21 568 84v267c-123 1-184-50-298-39s-188 48-287 2z" fill="url(#fields)" opacity=".9"/>
+
+  <path d="M-70 657C169 605 308 654 492 689s324 16 473-72 326-92 706-51" fill="none" stroke="#9fc7d1" stroke-width="102" stroke-linecap="round"/>
+  <path d="M-70 651C169 599 315 652 493 681s319 11 467-75 327-89 711-47" fill="none" stroke="#cbe6ec" stroke-width="76" stroke-linecap="round"/>
+  <path d="M730 -30c4 159-80 254-115 359s-38 211-12 349" fill="none" stroke="#acd3db" stroke-width="32" stroke-linecap="round"/>
+  <path d="M734 -30c0 159-78 256-111 361s-35 207-9 344" fill="none" stroke="#d6edf0" stroke-width="20" stroke-linecap="round"/>
+
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M96 973C286 859 428 777 603 648S897 405 1070 243s308-207 473-206" stroke="#b99b8c" stroke-width="34"/>
+    <path d="M96 973C286 859 428 777 603 648S897 405 1070 243s308-207 473-206" stroke="#fff9ec" stroke-width="24"/>
+    <path d="M-20 434C231 465 378 438 568 414s342-18 504 28 315 44 548 9" stroke="#c5aa9e" stroke-width="29"/>
+    <path d="M-20 434C231 465 378 438 568 414s342-18 504 28 315 44 548 9" stroke="#fffaf0" stroke-width="20"/>
+    <path d="M313 111c44 151 94 266 170 379s138 197 225 354 130 214 234 279" stroke="#ccb7aa" stroke-width="23"/>
+    <path d="M313 111c44 151 94 266 170 379s138 197 225 354 130 214 234 279" stroke="#fffaf1" stroke-width="15"/>
+    <path d="M911 106c-59 126-91 225-93 329s39 227 132 357" stroke="#d3c0b4" stroke-width="19"/>
+    <path d="M911 106c-59 126-91 225-93 329s39 227 132 357" stroke="#fffaf1" stroke-width="12"/>
+    <path d="M1060 745c156-64 316-71 498-26" stroke="#d3c0b4" stroke-width="18"/>
+    <path d="M1060 745c156-64 316-71 498-26" stroke="#fffaf1" stroke-width="11"/>
+  </g>
+
+  <g opacity=".88">
+    <use href="#house" transform="translate(470 350) scale(.8)"/>
+    <use href="#house" transform="translate(530 379) scale(.72)"/>
+    <use href="#house" transform="translate(587 344) scale(.78)"/>
+    <use href="#house" transform="translate(660 393) scale(.68)"/>
+    <use href="#house" transform="translate(714 348) scale(.77)"/>
+    <use href="#house" transform="translate(772 393) scale(.72)"/>
+    <use href="#house" transform="translate(839 348) scale(.72)"/>
+    <use href="#house" transform="translate(887 407) scale(.66)"/>
+    <use href="#house" transform="translate(392 492) scale(.65)"/>
+    <use href="#house" transform="translate(468 525) scale(.76)"/>
+    <use href="#house" transform="translate(536 482) scale(.72)"/>
+    <use href="#house" transform="translate(715 514) scale(.72)"/>
+    <use href="#house" transform="translate(788 474) scale(.68)"/>
+    <use href="#house" transform="translate(877 513) scale(.74)"/>
+    <use href="#house" transform="translate(1008 489) scale(.7)"/>
+    <use href="#house" transform="translate(1084 522) scale(.66)"/>
+  </g>
+
+  <g opacity=".95">
+    <use href="#tree" transform="translate(85 130)"/>
+    <use href="#tree" transform="translate(142 190) scale(.9)"/>
+    <use href="#tree" transform="translate(238 104) scale(1.1)"/>
+    <use href="#tree" transform="translate(1260 91) scale(1.05)"/>
+    <use href="#tree" transform="translate(1345 138) scale(.9)"/>
+    <use href="#tree" transform="translate(1460 81) scale(1.12)"/>
+    <use href="#tree" transform="translate(138 880)"/>
+    <use href="#tree" transform="translate(251 922) scale(.88)"/>
+    <use href="#tree" transform="translate(1320 920)"/>
+    <use href="#tree" transform="translate(1447 876) scale(1.12)"/>
+  </g>
+
+  <g filter="url(#soft)">
+    <path d="M914 266h134l17 20v83H897v-83z" fill="#f6dfd4" stroke="#ae7767" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M942 266v-35h77v35" fill="#f6dfd4" stroke="#ae7767" stroke-width="5"/>
+    <path d="M933 319h96" stroke="#ae7767" stroke-width="5" stroke-linecap="round"/>
+    <text x="981" y="405" text-anchor="middle" fill="#715c56" font-family="sans-serif" font-size="26" font-weight="700">嬉野温泉駅</text>
+  </g>
+
+  <g transform="translate(590 547)" filter="url(#soft)">
+    <circle r="60" fill="#fff8ee" stroke="#bd806c" stroke-width="6"/>
+    <path d="M-25 12c6 18 44 18 50 0M-31 2h62v20c0 23-62 23-62 0z" fill="#e8b8a6" stroke="#9e6758" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M-18-14c-12-18 13-18 1-37M4-14c-12-18 13-18 1-37M25-14c-12-18 13-18 1-37" fill="none" stroke="#9e6758" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <text x="582" y="643" text-anchor="middle" fill="#705d57" font-family="serif" font-size="42" font-weight="700" letter-spacing="7">嬉野温泉街</text>
+  <text x="1055" y="656" fill="#6c969d" font-family="sans-serif" font-size="28" font-weight="700" transform="rotate(-12 1055 656)">塩田川</text>
+  <text x="642" y="174" fill="#779284" font-family="sans-serif" font-size="23" font-weight="700" transform="rotate(74 642 174)">嬉野川</text>
+  <text x="78" y="1050" fill="#8b766d" font-family="sans-serif" font-size="21">概略イラストマップ</text>
+</svg>
