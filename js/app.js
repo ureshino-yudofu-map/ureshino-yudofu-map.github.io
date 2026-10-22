@@ -13,6 +13,8 @@
   const CAT_ORDER = ['restaurant', 'hotel', 'tofu_maker', 'shop', 'onsen', 'other'];
   const TARE_ORDER = Object.keys(S.TARE_TYPES);
   const PRICE_MAX = 10000;
+  const MAP_HOME_CENTER = [33.09665, 129.98416];
+  const MAP_HOME_ZOOM = 16;
 
   const state = {
     all: [], visible: [], byId: {}, meta: {}, source: 'json', loadError: '',
@@ -59,7 +61,8 @@
     renderMakerList();
     const initialHash = new URLSearchParams(location.hash.replace(/^#/, ''));
     readHash();
-    applyFilters({ fit: true });
+    applyFilters({});
+    state.map.setView(MAP_HOME_CENTER[0], MAP_HOME_CENTER[1], MAP_HOME_ZOOM);
     const sel = initialHash.get('place');
     if (sel && state.byId[sel]) selectPlace(sel, { pan: true });
     updateDataBadge();
@@ -342,7 +345,7 @@
   // state.map は共通インターフェース:
   //   setView(lat,lng,zoom) panTo(lat,lng) getZoom() contains(lat,lng) fitBounds(points,{padding,maxZoom})
   //   addMarker({lat,lng,html,title,zIndex,onClick}) -> {setHtml, setZIndex, remove}  clearMarkers()
-  //   setMeMarker(lat,lng) invalidateSize() setCursor(css) onMoveEnd(fn) onClick(fn)
+  //   setMeMarker(lat,lng) invalidateSize() panForSheet(lat,lng,height) setCursor(css) onMoveEnd(fn) onClick(fn)
   async function createMap() {
     state.map = createLeafletMap();
     state.engine = 'illustrated';
@@ -494,6 +497,10 @@
         me = new AME({ map: gmap, position: { lat, lng }, content: c, zIndex: 2000 });
       },
       invalidateSize: () => google.maps.event.trigger(gmap, 'resize'),
+      panForSheet: (lat, lng, height) => {
+        gmap.panTo({ lat, lng });
+        requestAnimationFrame(() => gmap.panBy(0, Math.round((height || 0) * 0.46)));
+      },
       setCursor: (css) => gmap.setOptions({ draggableCursor: css || null }),
       setTheme: () => {},
       onMoveEnd: (fn) => gmap.addListener('idle', fn),
@@ -504,7 +511,7 @@
 
   // ---- OpenFreeMap（MapLibre を Leaflet の共通操作層に載せる） -----------------------------
   function createLeafletMap() {
-    const map = L.map('map', { zoomControl: false, center: CFG.MAP_CENTER, zoom: CFG.MAP_ZOOM, preferCanvas: false });
+    const map = L.map('map', { zoomControl: false, center: CFG.MAP_CENTER, zoom: CFG.MAP_ZOOM, maxZoom: 19, preferCanvas: false });
     const illustrated = L.imageOverlay('assets/ureshino-illustrated-map.svg?v=2.0.0', [[33.065, 129.950], [33.135, 130.045]], {
       opacity: 1, interactive: false,
       attribution: '<span>概略イラスト</span> · <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>',
@@ -552,11 +559,31 @@
     L.control.layers(bases, null, { position: 'topleft' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     L.control.scale({ imperial: false, position: 'bottomright' }).addTo(map);
-    const layer = L.layerGroup().addTo(map);
+    const clustered = typeof L.markerClusterGroup === 'function';
+    const layer = clustered ? L.markerClusterGroup({
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      spiderfyOnMaxZoom: true,
+      spiderfyDistanceMultiplier: 1.25,
+      removeOutsideVisibleBounds: true,
+      maxClusterRadius: (zoom) => zoom >= 17 ? 34 : zoom >= 16 ? 42 : 54,
+      iconCreateFunction: (cluster) => {
+        const count = cluster.getChildCount();
+        const size = count >= 30 ? 52 : count >= 10 ? 46 : 40;
+        return L.divIcon({
+          className: 'tofu-cluster',
+          html: '<span aria-hidden="true">' + count + '</span><span class="sr-only">近くに' + count + '件</span>',
+          iconSize: [size, size],
+        });
+      },
+      spiderLegPolylineOptions: { weight: 2, color: '#b98374', opacity: 0.65 },
+    }).addTo(map) : L.layerGroup().addTo(map);
+    if (clustered) map.on('clusterclick', closeMapCard);
     let me = null;
     const divIcon = (html) => L.divIcon({ className: 'pin-icon', iconSize: [42, 48], iconAnchor: [21, 45], tooltipAnchor: [10, -18], html });
     return {
       engine: 'leaflet',
+      clustered,
       setView: (lat, lng, zoom) => map.setView([lat, lng], zoom == null ? map.getZoom() : zoom),
       panTo: (lat, lng) => map.panTo([lat, lng]),
       getCenter: () => { const c = map.getCenter(); return { lat: c.lat, lng: c.lng }; },
@@ -575,6 +602,9 @@
         me = L.marker([lat, lng], { icon: L.divIcon({ className: 'pin-icon', html: '<div class="me-dot"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }), interactive: false }).addTo(map);
       },
       invalidateSize: () => map.invalidateSize(),
+      panForSheet: (lat, lng, height) => map.panInside([lat, lng], {
+        paddingTopLeft: [24, 82], paddingBottomRight: [24, Math.max(96, (height || 0) + 20)], animate: true,
+      }),
       setCursor: (css) => { $('#map').style.cursor = css || ''; },
       setTheme: () => { if (vector && vector.getMaplibreMap) applyIllustratedTheme(vector.getMaplibreMap()); },
       onMoveEnd: (fn) => map.on('moveend', fn),
@@ -675,6 +705,9 @@
       '<a class="btn" href="' + esc(gmapsUrl(p)) + '" target="_blank" rel="noopener noreferrer">Google マップ</a>' +
       '<a class="btn" href="' + esc(appleMapsUrl(p)) + '" target="_blank" rel="noopener noreferrer">Apple マップ</a></div>';
     card.hidden = false;
+    if (matchMedia('(max-width: 900px)').matches && state.map && state.map.panForSheet && hasGeo(p)) {
+      requestAnimationFrame(() => state.map.panForSheet(p.lat, p.lng, card.offsetHeight + 70));
+    }
     $('.map-card-close', card).addEventListener('click', closeMapCard);
     $('[data-map-card-detail]', card).addEventListener('click', () => selectPlace(p.id, { pan: false, scroll: false }));
   }
@@ -694,7 +727,7 @@
       if (!hasGeo(p)) return;
       const k = p.lat.toFixed(5) + ',' + p.lng.toFixed(5);
       const g = { n: groups[k].length, i: groups[k].indexOf(p.id) };
-      const ll = displayLatLng(p, g);
+      const ll = state.map.clustered ? [p.lat, p.lng] : displayLatLng(p, g);
       const selected = p.id === state.selectedId || p.id === state.mapCardId;
       state.markers[p.id] = state.map.addMarker({
         lat: ll[0], lng: ll[1], html: pinHtml(p, selected), zIndex: selected ? 1000 : 0,
@@ -1322,7 +1355,7 @@
       document.body.classList.toggle('view-map', t.dataset.view === 'map');
       document.body.classList.toggle('view-list', t.dataset.view === 'list');
       if (t.dataset.view === 'media') { $('#media').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-      $('#explore').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      (t.dataset.view === 'map' ? $('.layout') : $('#explore')).scrollIntoView({ behavior: 'smooth', block: 'start' });
       setTimeout(() => state.map.invalidateSize(), 50);
     }));
     window.addEventListener('hashchange', () => {
