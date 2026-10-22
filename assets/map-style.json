@@ -1,0 +1,207 @@
+{
+  "version": 8,
+  "name": "Ureshino Yudofu Illustrated Map",
+  "metadata": {
+    "style-version": "1.0.0",
+    "description": "Pink, cream and sage illustrated map for the Ureshino Onsen Yudofu Map"
+  },
+  "sources": {
+    "openmaptiles": {
+      "type": "vector",
+      "url": "https://tiles.openfreemap.org/planet",
+      "attribution": "<a href=\"https://openfreemap.org\" target=\"_blank\" rel=\"noopener\">OpenFreeMap</a> · © <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\" rel=\"noopener\">OpenStreetMap contributors</a>"
+    }
+  },
+  "glyphs": "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": { "background-color": "#fbf6f1" }
+    },
+    {
+      "id": "landuse-residential",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "landuse",
+      "filter": ["==", ["get", "class"], "residential"],
+      "paint": { "fill-color": "#f7eeeb", "fill-opacity": 0.72 }
+    },
+    {
+      "id": "landcover-wood",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "landcover",
+      "filter": ["==", ["get", "class"], "wood"],
+      "paint": { "fill-color": "#dce8df", "fill-opacity": 0.84 }
+    },
+    {
+      "id": "landcover-grass",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "landcover",
+      "filter": ["in", ["get", "class"], ["literal", ["grass", "farmland", "meadow"]]],
+      "paint": { "fill-color": "#eaf0e7", "fill-opacity": 0.8 }
+    },
+    {
+      "id": "park",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "park",
+      "paint": { "fill-color": "#e1ecdf", "fill-opacity": 0.9 }
+    },
+    {
+      "id": "water",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "water",
+      "filter": ["!=", ["get", "brunnel"], "tunnel"],
+      "paint": { "fill-color": "#cfe7ed" }
+    },
+    {
+      "id": "waterway",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "waterway",
+      "filter": ["!=", ["get", "brunnel"], "tunnel"],
+      "layout": { "line-cap": "round", "line-join": "round" },
+      "paint": {
+        "line-color": "#b7dce5",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 9, 0.35, 16, 2.4, 20, 6]
+      }
+    },
+    {
+      "id": "rail",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": ["in", ["get", "class"], ["literal", ["rail", "transit"]]],
+      "layout": { "line-cap": "round", "line-join": "round" },
+      "paint": {
+        "line-color": "#baaead",
+        "line-opacity": 0.55,
+        "line-dasharray": [2, 2],
+        "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.5, 16, 1.25]
+      }
+    },
+    {
+      "id": "road-casing",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": ["in", ["get", "class"], ["literal", ["motorway", "trunk", "primary", "secondary", "tertiary", "minor", "service", "track", "path", "pedestrian"]]],
+      "layout": { "line-cap": "round", "line-join": "round" },
+      "paint": {
+        "line-color": "#e5d7d2",
+        "line-opacity": 0.74,
+        "line-width": [
+          "interpolate", ["exponential", 1.2], ["zoom"],
+          7, ["match", ["get", "class"], ["motorway", "trunk", "primary"], 1.1, 0.4],
+          13, ["match", ["get", "class"], ["motorway", "trunk", "primary"], 5.6, ["secondary", "tertiary"], 4.3, 2.7],
+          19, ["match", ["get", "class"], ["motorway", "trunk", "primary"], 23, ["secondary", "tertiary"], 18, 10]
+        ]
+      }
+    },
+    {
+      "id": "roads",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": ["in", ["get", "class"], ["literal", ["motorway", "trunk", "primary", "secondary", "tertiary", "minor", "service", "track", "path", "pedestrian"]]],
+      "layout": { "line-cap": "round", "line-join": "round" },
+      "paint": {
+        "line-color": ["match", ["get", "class"], ["motorway", "trunk"], "#efc4ba", "primary", "#f3d1c7", ["secondary", "tertiary"], "#f7e1db", "#fffaf6"],
+        "line-opacity": ["match", ["get", "class"], ["track", "path", "pedestrian"], 0.72, 0.96],
+        "line-width": [
+          "interpolate", ["exponential", 1.2], ["zoom"],
+          7, ["match", ["get", "class"], ["motorway", "trunk", "primary"], 0.75, 0.2],
+          13, ["match", ["get", "class"], ["motorway", "trunk", "primary"], 4.6, ["secondary", "tertiary"], 3.4, 1.9],
+          19, ["match", ["get", "class"], ["motorway", "trunk", "primary"], 21, ["secondary", "tertiary"], 16, 8]
+        ]
+      }
+    },
+    {
+      "id": "buildings",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "building",
+      "minzoom": 13,
+      "paint": {
+        "fill-color": "#eadeda",
+        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0.46, 16, 0.72],
+        "fill-outline-color": "#dfcfca"
+      }
+    },
+    {
+      "id": "boundaries",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "boundary",
+      "filter": ["all", [">=", ["get", "admin_level"], 3], ["<=", ["get", "admin_level"], 8], ["!=", ["get", "maritime"], 1]],
+      "paint": { "line-color": "#c9b8b4", "line-opacity": 0.42, "line-dasharray": [3, 3], "line-width": 0.8 }
+    },
+    {
+      "id": "water-labels",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "water_name",
+      "minzoom": 10,
+      "layout": {
+        "symbol-placement": "line",
+        "text-field": ["coalesce", ["get", "name:ja"], ["get", "name:nonlatin"], ["get", "name"]],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": ["interpolate", ["linear"], ["zoom"], 10, 10, 16, 12],
+        "text-letter-spacing": 0.04
+      },
+      "paint": { "text-color": "#729ca5", "text-halo-color": "#edf7f8", "text-halo-width": 1.2 }
+    },
+    {
+      "id": "road-labels-major",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "transportation_name",
+      "minzoom": 12,
+      "filter": ["in", ["get", "class"], ["literal", ["motorway", "trunk", "primary", "secondary", "tertiary"]]],
+      "layout": {
+        "symbol-placement": "line",
+        "text-field": ["coalesce", ["get", "name:ja"], ["get", "name:nonlatin"], ["get", "name"]],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": ["interpolate", ["linear"], ["zoom"], 12, 10, 16, 11.5],
+        "text-letter-spacing": 0.02
+      },
+      "paint": { "text-color": "#8a7976", "text-halo-color": "#fffaf6", "text-halo-width": 1.35 }
+    },
+    {
+      "id": "road-labels-minor",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "transportation_name",
+      "minzoom": 15,
+      "filter": ["in", ["get", "class"], ["literal", ["minor", "service"]]],
+      "layout": {
+        "symbol-placement": "line",
+        "text-field": ["coalesce", ["get", "name:ja"], ["get", "name:nonlatin"], ["get", "name"]],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": 10,
+        "text-letter-spacing": 0.02
+      },
+      "paint": { "text-color": "#9c8e8a", "text-halo-color": "#fffaf6", "text-halo-width": 1.2 }
+    },
+    {
+      "id": "place-labels",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "place",
+      "minzoom": 5,
+      "filter": ["in", ["get", "class"], ["literal", ["city", "town", "village", "suburb", "quarter", "neighbourhood"]]],
+      "layout": {
+        "text-field": ["coalesce", ["get", "name:ja"], ["get", "name:nonlatin"], ["get", "name"]],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": ["interpolate", ["linear"], ["zoom"], 6, 11, 11, 13, 16, 14],
+        "text-max-width": 8,
+        "text-letter-spacing": 0.04
+      },
+      "paint": { "text-color": "#6f625f", "text-halo-color": "#fbf6f1", "text-halo-width": 1.5, "text-halo-blur": 0.3 }
+    }
+  ]
+}
