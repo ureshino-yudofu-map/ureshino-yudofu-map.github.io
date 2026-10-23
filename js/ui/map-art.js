@@ -58,7 +58,7 @@
       const img = new Image();
       img.onload = () => resolve(['building-' + key, img]);
       img.onerror = () => resolve(null);
-      img.src = 'assets/landmarks/' + key + '.png?v=1';
+      img.src = 'assets/landmarks/' + key + '.webp?v=1';
     }))).then(items => { s.images.push(...items.filter(Boolean)); if (s.loaded) setup(); });
     // 公園は建物ではなく汎用の樹木記号。
     const tree = new Image();
