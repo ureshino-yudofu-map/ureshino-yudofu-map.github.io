@@ -1,33 +1,120 @@
-/* 地図上の目印。道路や施設の位置はOpenStreetMapのベクタータイルを使用。
- * 絵はこのサイト用のSVG。道路を絵で置換せず、施設の座標に描く。
- */
+/* 実在建築の外観を参考にした目印。位置は点、離した絵は引き出し線で結ぶ。 */
 (function () {
   'use strict';
-  const tree = '<path d="M17 66V43" stroke="#8d7252" stroke-width="3"/><path d="M17 51L9 44m8 1 8-8" fill="none"/><path d="M7 42C-1 29 7 20 14 23 17 11 29 18 29 26 39 34 31 48 22 45 15 52 9 48 7 42Z" fill="#91b486"/><path d="M12 27C5 33 8 40 11 41" stroke="#c5d9a6" fill="none" stroke-width="3"/>';
-  const drawings = {
-    siebold: '<ellipse cx="49" cy="77" rx="45" ry="5" fill="#cbd1b3" stroke="none"/><path d="M8 43h78v31H8z" fill="#f6e6b7"/><path d="M2 44l13-17h62l14 17z" fill="#cb8155"/><path d="M16 32h13v42H16zM66 32h13v42H66z" fill="#f8eac9"/><path d="M32 27h31v47H32z" fill="#f6e7c1"/><path d="M29 28c3-8 3-13 7-18l12-9 12 9c4 5 4 10 7 18z" fill="#cc865b"/><path d="M37 11h22v15H37z" fill="#f8e8b9"/><path d="M33 11 48 0l15 11z" fill="#a76549"/><circle cx="48" cy="19" r="5" fill="#fff8df"/><path d="M48 16v4h3M38 29v43m20-43v43" fill="none"/><path d="M20 46h6v16h-6zm50 0h6v16h-6zM10 48h4v14h-4zm71 0h3v14h-3z" fill="#88b5bc"/><path d="M42 73V54a6 6 0 0 1 12 0v19z" fill="#819b9d"/><path d="M5 73h84v5H5z" fill="#bda887"/><path d="M43 38h10v7H43z" fill="#9ab8bb"/>',
-    castle: '<path d="M9 75h78l-9-16H19z" fill="#a8a695"/><path d="M23 58V39h49v21zM32 33V17h32v20z" fill="#efe4c3"/><path d="M15 40l34-18 31 18-8 5H22zM25 17 48 4l23 13-7 5H32z" fill="#7e8c7b"/><path d="M30 47h7v9h-7zm30 0h7v9h-7zM43 28h10v8H43z" fill="#746b55"/><path d="M43 62V48h11v14" fill="#b7946d"/><path d="M14 70h69M21 63l5 12m41-12 6 12" fill="none"/>',
-    park: '<path d="M7 68Q43 51 91 67L79 77 17 77Z" fill="#ccdba3"/>'+tree+'<g transform="translate(56 -8) scale(.9)">'+tree+'</g><path d="M35 62h25v6H35zm3 6v7m19-7v7m-23-18h27v5H34z" fill="#d3ad76"/><path d="M39 77Q44 65 48 74L52 80" fill="#f8edd4" stroke="none"/>',
-    shrine: '<path d="M5 75h86l-8-7H15z" fill="#c9cbb6"/><path d="M30 62V36h44v26z" fill="#e7d4ad"/><path d="M24 37Q44 29 52 22 62 32 83 37L75 42H29z" fill="#727d68"/><path d="M47 44h13v18H47z" fill="#987d60"/><path d="M17 27h7v46h-7zm58 0h7v46h-7z" fill="#b86e58"/><path d="M9 19Q48 26 90 19l-3 8Q47 32 12 27zM13 36h73v6H13z" fill="#c78065"/><path d="M10 18Q48 25 90 18" fill="none" stroke="#65594c" stroke-width="3"/><path d="M47 30v8h6v-8" fill="#e0c184"/>',
-    bath: '<ellipse cx="48" cy="74" rx="43" ry="7" fill="#d7d2ad" stroke="none"/><path d="M11 41h72v31H11z" fill="#f8e7b8"/><path d="M5 42l13-14h59l13 14z" fill="#b87559"/><path d="M20 28l11-10h30l15 10z" fill="#d69967"/><path d="M37 20V9h23v14" fill="#f6dfae"/><path d="M33 9l15-8 16 8z" fill="#ab7657"/><path d="M42 12h12v8H42z" fill="#92aeb0"/><path d="M17 49h10v13H17zm16 0h10v13H33zm22 0h10v13H55zm16 0h7v13H71z" fill="#8faeb1"/><path d="M43 72V55a7 7 0 0 1 14 0v17" fill="#8a7157"/><path d="M8 70h78v5H8z" fill="#bba789"/><path d="M71 20c-6-5 5-9 0-15m10 16c-5-5 5-9 0-15" fill="none" stroke="#a4aaa0" stroke-width="2"/>',
-    station: '<path d="M8 73h83l-8-8H16z" fill="#c9c8b1"/><path d="M13 31h70v37H13z" fill="#e4d0aa"/><path d="M6 32l42-19 42 19-8 5H14z" fill="#8b9b81"/><path d="M20 43h16v16H20zm39 0h16v16H59z" fill="#a4c4c5"/><path d="M40 46h15v22H40z" fill="#7b7764"/><circle cx="48" cy="30" r="6" fill="#fff7db"/><path d="M48 26v5l4 1" fill="none"/><path d="M18 72l-5 7m64-7 5 7M12 77h71" fill="none" stroke-width="2"/>',
-    landmark: '<path d="M11 73h78l-8-8H19z" fill="#c5cbb3"/><path d="M18 35h60v33H18z" fill="#f0ddba"/><path d="M11 35l37-22 37 22z" fill="#889a82"/><path d="M28 43h9v17h-9zm32 0h9v17h-9z" fill="#9fbcc0"/><path d="M43 68V48h12v20z" fill="#a58a69"/><path d="M14 67h69v6H14z" fill="#cdb797"/>',
-  };
-  function install(gl) {
-    // Add icons before style evaluation; no third-party photos or remote image requests.
-    const images = Object.entries(drawings).map(([key, drawing]) => new Promise(resolve => {
-      const img = new Image(192, 168);
-      img.onload = () => resolve(['walk-' + key, img]);
-      img.onerror = () => resolve(null);
-      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="192" height="168" viewBox="0 0 96 84"><g stroke="#75654f" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round">' + drawing + '</g></svg>');
-    }));
-    let removed = false;
-    gl.on('remove', () => { removed = true; });
-    Promise.all(images).then(items => {
-      const add = () => { if (removed) return; items.filter(Boolean).forEach(([id, img]) => { if (!gl.hasImage(id)) gl.addImage(id, img, { pixelRatio: 2 }); }); };
-      if (gl.isStyleLoaded()) add();
-      gl.on('style.load', add);
-    });
+  const sessions = new WeakMap();
+  const collection = features => ({ type: 'FeatureCollection', features });
+  const point = (coordinates, properties) => ({ type: 'Feature', geometry: { type: 'Point', coordinates }, properties });
+  function afterMarkers(gl) {
+    const s = sessions.get(gl);
+    if (!s || s.removed) return;
+    clearTimeout(s.timer);
+    s.timer = setTimeout(() => refresh(gl), 400);
   }
-  window.TofuMapArt = { install };
+
+  function refresh(gl) {
+    const s = sessions.get(gl);
+    if (!s || s.removed || !gl.getSource('building-art')) return;
+    const features = s.fixed.concat(s.places.filter(p => p.name.includes('シーボルト') && Number.isFinite(p.lat) && Number.isFinite(p.lng)).map(p =>
+      point([p.lng, p.lat], { name: 'シーボルトの湯', art: 'siebold', dx: 85, dy: 85 })));
+    // 広域では絵同士を離す。詳細表示では実際の場所へ近づける。
+    const spread = Math.max(0.2, Math.min(1, (16 - gl.getZoom()) / 3));
+    const lines = [];
+    const canvas = gl.getCanvas().getBoundingClientRect();
+    const mapRect = document.getElementById('map').getBoundingClientRect();
+    const viewport = { left: mapRect.left - canvas.left, right: mapRect.right - canvas.left, top: mapRect.top - canvas.top + 55, bottom: mapRect.bottom - canvas.top - 28 };
+    const obstacles = [...document.querySelectorAll('#map .leaflet-marker-icon, .map-legend, .map-tools')].map(el => {
+      const r = el.getBoundingClientRect();
+      return { left: r.left - canvas.left - 5, right: r.right - canvas.left + 5, top: r.top - canvas.top - 5, bottom: r.bottom - canvas.top + 5 };
+    });
+    const overlap = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+    const pictures = features.map(f => {
+      const xy = gl.project(f.geometry.coordinates);
+      const p = f.properties;
+      let offset = [p.dx * spread, p.dy * spread];
+      // 店舗ピンを避ける。建物を座標の上へ重ねず、実際の位置は引き出し線で示す。
+      if (gl.getZoom() >= 14 && xy.x >= viewport.left && xy.x <= viewport.right && xy.y >= viewport.top && xy.y <= viewport.bottom) {
+        const desired = offset;
+        const side = p.dx < 0 ? -1 : 1;
+        const candidates = [desired, [side * 65, -35], [side * 100, -35], [side * 65, 60], [side * 100, 80], [side * 40, 100]];
+        const box = ([dx, dy]) => ({ left: xy.x + dx - 48, right: xy.x + dx + 48, top: xy.y + dy - 76, bottom: xy.y + dy + 20 });
+        const score = d => {
+          const b = box(d);
+          return obstacles.reduce((sum, o) => sum + overlap(b, o) * 10, 0) + (9216 - overlap(b, viewport)) * 30 + ((d[0] - desired[0]) ** 2 + (d[1] - desired[1]) ** 2) * 0.5;
+        };
+        offset = candidates.reduce((best, c) => score(c) < score(best) ? c : best, desired);
+        obstacles.push(box(offset));
+      }
+      const end = gl.unproject([xy.x + offset[0], xy.y + offset[1]]);
+      const coordinates = [end.lng, end.lat];
+      lines.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: [f.geometry.coordinates, coordinates] }, properties: {} });
+      return point(coordinates, p);
+    });
+    gl.getSource('building-points').setData(collection(features));
+    gl.getSource('building-leaders').setData(collection(lines));
+    gl.getSource('building-art').setData(collection(pictures));
+  }
+
+  function install(gl) {
+    if (sessions.has(gl)) return;
+    const s = { places: [], fixed: [], removed: false, images: [] };
+    sessions.set(gl, s);
+    const setup = () => {
+      if (s.removed) return;
+      for (const [key, image] of s.images) {
+        if (!gl.hasImage(key)) gl.addImage(key, image, { pixelRatio: image.width / 128 });
+      }
+      // 未確認の施設を架空の建築で表さない。名前は残す。
+      for (const id of ['landmark-labels', 'local-bath-landmarks']) {
+        if (!gl.getLayer(id)) continue;
+        gl.setLayoutProperty(id, 'icon-image', null);
+        gl.setLayoutProperty(id, 'text-offset', [0, 0]);
+      }
+      if (gl.getLayer('landmark-labels')) {
+        if (!s.filter) s.filter = gl.getFilter('landmark-labels');
+        gl.setFilter('landmark-labels', ['all', s.filter, ['!=', ['get', 'name'], '豊玉姫神社']]);
+      }
+      if (!gl.getSource('building-art')) {
+        ['building-art', 'building-points', 'building-leaders'].forEach(id => gl.addSource(id, { type: 'geojson', data: collection([]) }));
+        gl.addLayer({ id: 'building-leaders', type: 'line', source: 'building-leaders', paint: { 'line-color': '#9c7968', 'line-width': 1.2, 'line-opacity': 0.85 } });
+        gl.addLayer({ id: 'building-points', type: 'circle', source: 'building-points', paint: { 'circle-radius': 3, 'circle-color': '#a66657', 'circle-stroke-width': 1.5, 'circle-stroke-color': '#fff7e7' } });
+        gl.addLayer({ id: 'building-art', type: 'symbol', source: 'building-art', layout: {
+          'icon-image': ['concat', 'building-', ['get', 'art']], 'icon-size': ['interpolate', ['linear'], ['zoom'], 13, 0.85, 14, 0.55], 'icon-optional': true,
+          'icon-anchor': 'bottom', 'icon-allow-overlap': true,
+          'text-field': ['get', 'name'], 'text-font': ['Noto Sans Regular'], 'text-size': 12,
+          'text-anchor': 'top', 'text-offset': [0, 0.15], 'text-max-width': 8,
+          'text-allow-overlap': true, 'text-ignore-placement': true,
+        }, paint: { 'text-color': '#584c43', 'text-halo-color': '#fff7e7', 'text-halo-width': 2.5 } });
+      }
+      refresh(gl);
+    };
+    gl.on('load', () => { s.loaded = true; setup(); afterMarkers(gl); });
+    gl.on('zoom', () => refresh(gl));
+    gl.on('moveend', () => afterMarkers(gl));
+    gl.on('remove', () => { s.removed = true; clearTimeout(s.timer); });
+    fetch('assets/map-landmarks.json?v=2026-10-23').then(r => {
+      if (!r.ok) throw new Error('landmarks');
+      return r.json();
+    }).then(data => { s.fixed = data.features; refresh(gl); }).catch(() => { /* 店舗由来の目印は引き続き表示 */ });
+    Promise.all(['siebold', 'toyotama', 'cityhall'].map(key => new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => resolve(['building-' + key, img]);
+      img.onerror = () => resolve(null);
+      img.src = 'assets/landmarks/' + key + '.png?v=1';
+    }))).then(items => { s.images.push(...items.filter(Boolean)); if (s.loaded) setup(); });
+    // 公園は建物ではなく汎用の樹木記号。
+    const tree = new Image();
+    tree.onload = () => {
+      s.images.push(['walk-park', tree]);
+      if (s.loaded) setup();
+    };
+    tree.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><path d="M42 108V62m45 46V54" stroke="#9a7a56" stroke-width="6"/><path d="M42 79C7 81 12 47 25 42 13 12 62 10 60 36 83 48 70 80 42 79M87 68C58 72 58 43 72 34 66 7 101 6 105 27 129 45 113 70 87 68" fill="#89ad80" stroke="#607e61" stroke-width="2"/></svg>');
+  }
+  function update(gl, places) {
+    const s = sessions.get(gl);
+    if (!s) return;
+    s.places = places;
+    refresh(gl);
+    afterMarkers(gl);
+  }
+  window.TofuMapArt = { install, update };
 })();

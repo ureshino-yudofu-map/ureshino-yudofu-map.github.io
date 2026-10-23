@@ -1,0 +1,16 @@
+{
+  "version": "2026-10-23",
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [129.986866, 33.101276] },
+      "properties": { "name": "嬉野市役所（新庁舎）", "art": "cityhall", "dx": 85, "dy": -75, "source_url": "https://www.city.ureshino.lg.jp/shisei/soshiki/_24965.html", "source_note": "公式庁舎案内の地図座標。2026年10月の新庁舎。" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [129.98269200325012, 33.09727160183013] },
+      "properties": { "name": "豊玉姫神社", "art": "toyotama", "dx": -95, "dy": -85, "source_url": "https://toyotamahime-jinja.or.jp/sanpai.php", "source_note": "座標: OpenStreetMap / OpenFreeMap。外観: 神社公式の拝殿写真。" }
+    }
+  ]
+}

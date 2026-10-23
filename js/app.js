@@ -15,6 +15,9 @@
   const PRICE_MAX = 10000;
   const MAP_HOME_CENTER = [33.09665, 129.98416];
   const MAP_HOME_ZOOM = 16;
+  // 添付の広域表示（温泉街と周辺、縮尺約1km）より引かない。
+  const MAP_MIN_ZOOM = 13;
+  const MAP_OVERVIEW_CENTER = [33.101, 129.986];
 
   const state = {
     all: [], visible: [], byId: {}, meta: {}, source: 'json', loadError: '',
@@ -451,6 +454,7 @@
     const el = $('#map');
     const gmap = new google.maps.Map(el, {
       center: { lat: CFG.MAP_CENTER[0], lng: CFG.MAP_CENTER[1] }, zoom: CFG.MAP_ZOOM,
+      minZoom: MAP_MIN_ZOOM,
       mapId: CFG.GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID',
       clickableIcons: false, gestureHandling: 'greedy',
       mapTypeControl: true, mapTypeControlOptions: { position: google.maps.ControlPosition.TOP_LEFT },
@@ -511,7 +515,7 @@
 
   // ---- OpenFreeMap（MapLibre を Leaflet の共通操作層に載せる） -----------------------------
   function createLeafletMap() {
-    const map = L.map('map', { zoomControl: false, center: CFG.MAP_CENTER, zoom: CFG.MAP_ZOOM, maxZoom: 19, preferCanvas: false });
+    const map = L.map('map', { zoomControl: false, center: CFG.MAP_CENTER, zoom: CFG.MAP_ZOOM, minZoom: MAP_MIN_ZOOM, maxZoom: 19, preferCanvas: false });
     const gsi = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
       maxZoom: 18, attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>',
     });
@@ -528,7 +532,7 @@
     if (CFG.BASEMAP === 'vector' && typeof L.maplibreGL === 'function' && vectorSupported) {
       try {
         vector = L.maplibreGL({
-          style: 'assets/map-style.json?v=3.0.0',
+          style: 'assets/map-style.json?v=4.0.0',
           attribution: '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>',
         });
         let vectorReady = false;
@@ -582,8 +586,9 @@
       clustered,
       setLandmarks: (places) => {
         const gl = vector && vector.getMaplibreMap();
+        if (gl && window.TofuMapArt) window.TofuMapArt.update(gl, places);
         const source = gl && gl.getSource('local-baths');
-        if (source) source.setData({ type: 'FeatureCollection', features: places.filter(p => p.category === 'onsen' && hasGeo(p)).map(p => ({
+        if (source) source.setData({ type: 'FeatureCollection', features: places.filter(p => p.category === 'onsen' && !p.name.includes('シーボルト') && hasGeo(p)).map(p => ({
           type: 'Feature', geometry: { type: 'Point', coordinates: [p.lng, p.lat] }, properties: { name: p.name.replace('嬉野温泉公衆浴場 ', '').replace(/（.*）$/, '') },
         })) });
       },
@@ -914,7 +919,7 @@
     el.innerHTML = CAT_ORDER.filter((c) => state.all.some((p) => p.category === c)).map((c) => {
       const off = state.filters.cats.size && !state.filters.cats.has(c);
       return '<div class="legend-item' + (off ? ' off' : '') + '" data-cat="' + c + '" style="--c:' + catVar(c) + '" role="button" tabindex="0"><span class="legend-icon">' + I.icon(c, 'legend-illust') + '</span>' + esc(catLabel(c)) + ' <span class="muted">' + (counts[c] || 0) + '</span></div>';
-    }).join('') + '<div class="legend-note">白抜き＝提供未確認／点線＝位置は概略</div>';
+    }).join('') + '<div class="legend-note">白抜き＝提供未確認／点線＝位置は概略<details><summary>建物の位置・出典</summary>絵は目印・線の先が実際の位置<br><a href="https://www.city.ureshino.lg.jp/shisei/soshiki/_24965.html" target="_blank" rel="noopener">市役所</a>・<a href="https://www.city.ureshino.lg.jp/kanko/siebold.html" target="_blank" rel="noopener">浴場</a>・<a href="https://toyotamahime-jinja.or.jp/sanpai.php" target="_blank" rel="noopener">神社</a></details></div>';
   }
 
   // ------------------------------------------------------------------ 一覧
@@ -1316,7 +1321,7 @@
       const chip = $('#cat-chips [data-cat="' + c + '"]'); if (chip) { chip.classList.toggle('active', state.filters.cats.has(c)); chip.setAttribute('aria-pressed', state.filters.cats.has(c)); }
       applyFilters({});
     });
-    $('#legend').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.target.click(); } });
+    $('#legend').addEventListener('keydown', (e) => { if (e.target.closest('[data-cat]') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.target.click(); } });
     $('#tofu-select').addEventListener('change', (e) => { state.filters.tofu = e.target.value; applyFilters({}); });
     $('#price-range').addEventListener('input', (e) => { state.filters.price = Number(e.target.value); updatePriceOutput(); applyFilters({}); });
     $('#chk-unverified').addEventListener('change', (e) => { state.filters.unverified = e.target.checked; applyFilters({}); });
@@ -1326,7 +1331,7 @@
     $('#list').addEventListener('click', (e) => { if (e.target.closest('a')) return; const card = e.target.closest('.card'); if (card) selectPlace(card.dataset.id, { pan: true, scroll: false }); });
     $('#list').addEventListener('keydown', (e) => { const card = e.target.closest('.card'); if (card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selectPlace(card.dataset.id, { pan: true, scroll: false }); } });
     $('#btn-locate').addEventListener('click', locateMe);
-    $('#btn-fit').addEventListener('click', () => fitAll({ core: false }));
+    $('#btn-fit').addEventListener('click', () => { closeMapCard(); state.map.setView(MAP_OVERVIEW_CENTER[0], MAP_OVERVIEW_CENTER[1], MAP_MIN_ZOOM); });
     $('#btn-map-illustrated').addEventListener('click', () => switchMapEngine('illustrated'));
     $('#btn-map-google').addEventListener('click', () => switchMapEngine('google'));
     $('#btn-contribute').addEventListener('click', () => openContribute('new', null));
