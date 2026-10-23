@@ -24,8 +24,8 @@
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [129.9864069699743, 33.09783212095889] },
-      "properties": { "name": "湯っつら広場", "art": "yuttsura", "source_url": "https://publicspace-db.pref.saga.lg.jp/publicspace/k0002/", "source_note": "佐賀県公共空間データベース掲載の地図座標・添付の現地写真。" }
+      "geometry": { "type": "Point", "coordinates": [129.9875228672859, 33.097702335348245] },
+      "properties": { "name": "湯っつら広場", "art": "yuttsura", "source_url": "https://publicspace-db.pref.saga.lg.jp/publicspace/k0002/", "source_note": "外観: 佐賀県公共空間データベース・添付の現地写真。座標: 現地確認情報。" }
     },
     {
       "type": "Feature",
