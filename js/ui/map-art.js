@@ -1,57 +1,16 @@
-/* 実在建築の外観を参考にした目印。位置は点、離した絵は引き出し線で結ぶ。 */
+/* 実在建築の外観を参考にした目印。すべてのズームで実座標に固定する。 */
 (function () {
   'use strict';
   const sessions = new WeakMap();
   const collection = features => ({ type: 'FeatureCollection', features });
   const point = (coordinates, properties) => ({ type: 'Feature', geometry: { type: 'Point', coordinates }, properties });
-  function afterMarkers(gl) {
-    const s = sessions.get(gl);
-    if (!s || s.removed) return;
-    clearTimeout(s.timer);
-    s.timer = setTimeout(() => refresh(gl), 400);
-  }
 
   function refresh(gl) {
     const s = sessions.get(gl);
     if (!s || s.removed || !gl.getSource('building-art')) return;
     const features = s.fixed.concat(s.places.filter(p => p.name.includes('シーボルト') && Number.isFinite(p.lat) && Number.isFinite(p.lng)).map(p =>
-      point([p.lng, p.lat], { name: 'シーボルトの湯', art: 'siebold', dx: 85, dy: 85 })));
-    // 広域では絵同士を離す。詳細表示では実際の場所へ近づける。
-    const spread = Math.max(0.2, Math.min(1, (16 - gl.getZoom()) / 3));
-    const lines = [];
-    const canvas = gl.getCanvas().getBoundingClientRect();
-    const mapRect = document.getElementById('map').getBoundingClientRect();
-    const viewport = { left: mapRect.left - canvas.left, right: mapRect.right - canvas.left, top: mapRect.top - canvas.top + 55, bottom: mapRect.bottom - canvas.top - 28 };
-    const obstacles = [...document.querySelectorAll('#map .leaflet-marker-icon, .map-legend, .map-tools')].map(el => {
-      const r = el.getBoundingClientRect();
-      return { left: r.left - canvas.left - 5, right: r.right - canvas.left + 5, top: r.top - canvas.top - 5, bottom: r.bottom - canvas.top + 5 };
-    });
-    const overlap = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
-    const pictures = features.map(f => {
-      const xy = gl.project(f.geometry.coordinates);
-      const p = f.properties;
-      let offset = [p.dx * spread, p.dy * spread];
-      // 店舗ピンを避ける。建物を座標の上へ重ねず、実際の位置は引き出し線で示す。
-      if (gl.getZoom() >= 14 && xy.x >= viewport.left && xy.x <= viewport.right && xy.y >= viewport.top && xy.y <= viewport.bottom) {
-        const desired = offset;
-        const side = p.dx < 0 ? -1 : 1;
-        const candidates = [desired, [side * 65, -35], [side * 100, -35], [side * 65, 60], [side * 100, 80], [side * 40, 100]];
-        const box = ([dx, dy]) => ({ left: xy.x + dx - 48, right: xy.x + dx + 48, top: xy.y + dy - 76, bottom: xy.y + dy + 20 });
-        const score = d => {
-          const b = box(d);
-          return obstacles.reduce((sum, o) => sum + overlap(b, o) * 10, 0) + (9216 - overlap(b, viewport)) * 30 + ((d[0] - desired[0]) ** 2 + (d[1] - desired[1]) ** 2) * 0.5;
-        };
-        offset = candidates.reduce((best, c) => score(c) < score(best) ? c : best, desired);
-        obstacles.push(box(offset));
-      }
-      const end = gl.unproject([xy.x + offset[0], xy.y + offset[1]]);
-      const coordinates = [end.lng, end.lat];
-      lines.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: [f.geometry.coordinates, coordinates] }, properties: {} });
-      return point(coordinates, p);
-    });
-    gl.getSource('building-points').setData(collection(features));
-    gl.getSource('building-leaders').setData(collection(lines));
-    gl.getSource('building-art').setData(collection(pictures));
+      point([p.lng, p.lat], { name: 'シーボルトの湯', art: 'siebold' })));
+    gl.getSource('building-art').setData(collection(features));
   }
 
   function install(gl) {
@@ -71,31 +30,31 @@
       }
       if (gl.getLayer('landmark-labels')) {
         if (!s.filter) s.filter = gl.getFilter('landmark-labels');
-        gl.setFilter('landmark-labels', ['all', s.filter, ['!=', ['get', 'name'], '豊玉姫神社']]);
+        gl.setFilter('landmark-labels', ['all', s.filter, ['!', ['in', ['get', 'name'], ['literal', [
+          '豊玉姫神社', '元祖忍者村 肥前夢街道', '嬉野温泉駅', '湯っつら広場', 'うれしのお茶ちゃ村',
+        ]]]]]);
       }
       if (!gl.getSource('building-art')) {
-        ['building-art', 'building-points', 'building-leaders'].forEach(id => gl.addSource(id, { type: 'geojson', data: collection([]) }));
-        gl.addLayer({ id: 'building-leaders', type: 'line', source: 'building-leaders', paint: { 'line-color': '#9c7968', 'line-width': 1.2, 'line-opacity': 0.85 } });
-        gl.addLayer({ id: 'building-points', type: 'circle', source: 'building-points', paint: { 'circle-radius': 3, 'circle-color': '#a66657', 'circle-stroke-width': 1.5, 'circle-stroke-color': '#fff7e7' } });
+        gl.addSource('building-art', { type: 'geojson', data: collection([]) });
         gl.addLayer({ id: 'building-art', type: 'symbol', source: 'building-art', layout: {
-          'icon-image': ['concat', 'building-', ['get', 'art']], 'icon-size': ['interpolate', ['linear'], ['zoom'], 13, 0.85, 14, 0.55], 'icon-optional': true,
-          'icon-anchor': 'bottom', 'icon-allow-overlap': true,
-          'text-field': ['get', 'name'], 'text-font': ['Noto Sans Regular'], 'text-size': 12,
-          'text-anchor': 'top', 'text-offset': [0, 0.15], 'text-max-width': 8,
-          'text-allow-overlap': true, 'text-ignore-placement': true,
+          'icon-image': ['concat', 'building-', ['get', 'art']], 'icon-size': ['interpolate', ['linear'], ['zoom'], 12, 0.28, 15, 0.52, 18, 0.68], 'icon-optional': true,
+          'icon-anchor': 'center', 'icon-allow-overlap': true,
+          'text-field': ['get', 'name'], 'text-font': ['Noto Sans Regular'], 'text-size': ['interpolate', ['linear'], ['zoom'], 12, 10, 15, 12, 18, 13],
+          'text-anchor': 'top', 'text-offset': ['interpolate', ['linear'], ['zoom'], 12, ['literal', [0, 2.2]], 15, ['literal', [0, 3]], 18, ['literal', [0, 3.8]]], 'text-max-width': 8,
+          // 広域では地名を間引き、街歩きの縮尺では目印名を必ず読めるようにする。
+          'text-allow-overlap': ['step', ['zoom'], false, 15, true],
+          'text-ignore-placement': ['step', ['zoom'], false, 15, true], 'text-optional': true,
         }, paint: { 'text-color': '#584c43', 'text-halo-color': '#fff7e7', 'text-halo-width': 2.5 } });
       }
       refresh(gl);
     };
-    gl.on('load', () => { s.loaded = true; setup(); afterMarkers(gl); });
-    gl.on('zoom', () => refresh(gl));
-    gl.on('moveend', () => afterMarkers(gl));
-    gl.on('remove', () => { s.removed = true; clearTimeout(s.timer); });
-    fetch('assets/map-landmarks.json?v=2026-10-23').then(r => {
+    gl.on('load', () => { s.loaded = true; setup(); });
+    gl.on('remove', () => { s.removed = true; });
+    fetch('assets/map-landmarks.json?v=2026-10-23-3').then(r => {
       if (!r.ok) throw new Error('landmarks');
       return r.json();
     }).then(data => { s.fixed = data.features; refresh(gl); }).catch(() => { /* 店舗由来の目印は引き続き表示 */ });
-    Promise.all(['siebold', 'toyotama', 'cityhall'].map(key => new Promise(resolve => {
+    Promise.all(['siebold', 'cityhall', 'namazu', 'ochacha', 'ninja', 'yuttsura', 'station'].map(key => new Promise(resolve => {
       const img = new Image();
       img.onload = () => resolve(['building-' + key, img]);
       img.onerror = () => resolve(null);
@@ -114,7 +73,6 @@
     if (!s) return;
     s.places = places;
     refresh(gl);
-    afterMarkers(gl);
   }
   window.TofuMapArt = { install, update };
 })();

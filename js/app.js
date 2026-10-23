@@ -17,7 +17,7 @@
   const MAP_HOME_ZOOM = 16;
   // 添付の広域表示（温泉街と周辺、縮尺約1km）より引かない。
   const MAP_MIN_ZOOM = 13;
-  const MAP_OVERVIEW_CENTER = [33.101, 129.986];
+  const MAP_OVERVIEW_CENTER = [33.095, 129.984];
 
   const state = {
     all: [], visible: [], byId: {}, meta: {}, source: 'json', loadError: '',
@@ -574,6 +574,8 @@
           className: 'tofu-cluster',
           html: '<span aria-hidden="true">' + count + '</span><span class="sr-only">近くに' + count + '件</span>',
           iconSize: [size, size],
+          // 件数丸を少し左上へ。重なる建物は実座標から動かさず見えるようにする。
+          iconAnchor: count >= 30 ? [size / 2 + 24, size / 2 + 10] : [size / 2 + 14, size / 2 + 8],
         });
       },
       spiderLegPolylineOptions: { weight: 2, color: '#b98374', opacity: 0.65 },
@@ -919,7 +921,7 @@
     el.innerHTML = CAT_ORDER.filter((c) => state.all.some((p) => p.category === c)).map((c) => {
       const off = state.filters.cats.size && !state.filters.cats.has(c);
       return '<div class="legend-item' + (off ? ' off' : '') + '" data-cat="' + c + '" style="--c:' + catVar(c) + '" role="button" tabindex="0"><span class="legend-icon">' + I.icon(c, 'legend-illust') + '</span>' + esc(catLabel(c)) + ' <span class="muted">' + (counts[c] || 0) + '</span></div>';
-    }).join('') + '<div class="legend-note">白抜き＝提供未確認／点線＝位置は概略<details><summary>建物の位置・出典</summary>絵は目印・線の先が実際の位置<br><a href="https://www.city.ureshino.lg.jp/shisei/soshiki/_24965.html" target="_blank" rel="noopener">市役所</a>・<a href="https://www.city.ureshino.lg.jp/kanko/siebold.html" target="_blank" rel="noopener">浴場</a>・<a href="https://toyotamahime-jinja.or.jp/sanpai.php" target="_blank" rel="noopener">神社</a></details></div>';
+    }).join('') + '<div class="legend-note">白抜き＝提供未確認／点線＝位置は概略<details><summary>ランドマークの位置・出典</summary>絵の中心が実際の座標<br><a href="https://www.city.ureshino.lg.jp/shisei/soshiki/_24965.html" target="_blank" rel="noopener">市役所</a>・<a href="https://www.city.ureshino.lg.jp/kanko/siebold.html" target="_blank" rel="noopener">浴場</a>・<a href="https://toyotamahime-jinja.or.jp/sanpai.php" target="_blank" rel="noopener">神社</a>・<a href="https://spa-u.net/facility/2016/01/org-entry-209.php" target="_blank" rel="noopener">お茶</a>・<a href="https://www.hizenyumekaidou.info/access/" target="_blank" rel="noopener">忍者村</a>・<a href="https://publicspace-db.pref.saga.lg.jp/publicspace/k0002/" target="_blank" rel="noopener">広場</a>・<a href="https://www.jrkyushu.co.jp/railway/station/1227475_1601.html" target="_blank" rel="noopener">駅</a></details></div>';
   }
 
   // ------------------------------------------------------------------ 一覧
