@@ -13,6 +13,11 @@
   const CAT_ORDER = ['restaurant', 'hotel', 'tofu_maker', 'shop', 'onsen', 'other'];
   const TARE_ORDER = Object.keys(S.TARE_TYPES);
   const PRICE_MAX = 10000;
+  const MAP_HOME_CENTER = [33.09665, 129.98416];
+  const MAP_HOME_ZOOM = 16;
+  // 添付の広域表示（温泉街と周辺、縮尺約1km）より引かない。
+  const MAP_MIN_ZOOM = 13;
+  const MAP_OVERVIEW_CENTER = [33.095, 129.984];
 
   const state = {
     all: [], visible: [], byId: {}, meta: {}, source: 'json', loadError: '',
@@ -59,7 +64,8 @@
     renderMakerList();
     const initialHash = new URLSearchParams(location.hash.replace(/^#/, ''));
     readHash();
-    applyFilters({ fit: true });
+    applyFilters({});
+    state.map.setView(MAP_HOME_CENTER[0], MAP_HOME_CENTER[1], MAP_HOME_ZOOM);
     const sel = initialHash.get('place');
     if (sel && state.byId[sel]) selectPlace(sel, { pan: true });
     updateDataBadge();
@@ -342,7 +348,7 @@
   // state.map は共通インターフェース:
   //   setView(lat,lng,zoom) panTo(lat,lng) getZoom() contains(lat,lng) fitBounds(points,{padding,maxZoom})
   //   addMarker({lat,lng,html,title,zIndex,onClick}) -> {setHtml, setZIndex, remove}  clearMarkers()
-  //   setMeMarker(lat,lng) invalidateSize() setCursor(css) onMoveEnd(fn) onClick(fn)
+  //   setMeMarker(lat,lng) invalidateSize() panForSheet(lat,lng,height) setCursor(css) onMoveEnd(fn) onClick(fn)
   async function createMap() {
     state.map = createLeafletMap();
     state.engine = 'illustrated';
@@ -448,6 +454,7 @@
     const el = $('#map');
     const gmap = new google.maps.Map(el, {
       center: { lat: CFG.MAP_CENTER[0], lng: CFG.MAP_CENTER[1] }, zoom: CFG.MAP_ZOOM,
+      minZoom: MAP_MIN_ZOOM,
       mapId: CFG.GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID',
       clickableIcons: false, gestureHandling: 'greedy',
       mapTypeControl: true, mapTypeControlOptions: { position: google.maps.ControlPosition.TOP_LEFT },
@@ -494,6 +501,10 @@
         me = new AME({ map: gmap, position: { lat, lng }, content: c, zIndex: 2000 });
       },
       invalidateSize: () => google.maps.event.trigger(gmap, 'resize'),
+      panForSheet: (lat, lng, height) => {
+        gmap.panTo({ lat, lng });
+        requestAnimationFrame(() => gmap.panBy(0, Math.round((height || 0) * 0.46)));
+      },
       setCursor: (css) => gmap.setOptions({ draggableCursor: css || null }),
       setTheme: () => {},
       onMoveEnd: (fn) => gmap.addListener('idle', fn),
@@ -504,11 +515,7 @@
 
   // ---- OpenFreeMap（MapLibre を Leaflet の共通操作層に載せる） -----------------------------
   function createLeafletMap() {
-    const map = L.map('map', { zoomControl: false, center: CFG.MAP_CENTER, zoom: CFG.MAP_ZOOM, preferCanvas: false });
-    const illustrated = L.imageOverlay('assets/ureshino-illustrated-map.svg?v=2.0.0', [[33.065, 129.950], [33.135, 130.045]], {
-      opacity: 1, interactive: false,
-      attribution: '<span>概略イラスト</span> · <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>',
-    });
+    const map = L.map('map', { zoomControl: false, center: CFG.MAP_CENTER, zoom: CFG.MAP_ZOOM, minZoom: MAP_MIN_ZOOM, maxZoom: 19, preferCanvas: false });
     const gsi = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
       maxZoom: 18, attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>',
     });
@@ -518,45 +525,75 @@
     const photo = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
       maxZoom: 18, attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル（写真）</a>',
     });
-    // ベクター地図（OpenFreeMap: 鍵・費用不要）。WebGL 非対応時も通常の地図へ戻さず、概略イラストを表示する。
+    // 実際の道路形状を全ズームで使う。WebGL非対応時も位置を読める地理院地図へ。
     const bases = {};
     let vector = null;
-    const vectorSupported = typeof maplibregl !== 'undefined' && typeof maplibregl.supported === 'function' && maplibregl.supported();
+    const vectorSupported = typeof maplibregl !== 'undefined' && typeof maplibregl.Map === 'function';
     if (CFG.BASEMAP === 'vector' && typeof L.maplibreGL === 'function' && vectorSupported) {
       try {
         vector = L.maplibreGL({
-          style: 'assets/map-style.json?v=2.0.0',
+          style: 'assets/map-style.json?v=4.0.0',
           attribution: '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>',
         });
         let vectorReady = false;
         vector.on('add', () => {
           const gl = vector.getMaplibreMap();
           if (!gl) return;
-          gl.once('load', () => { vectorReady = true; applyIllustratedTheme(gl); });
-          gl.on('style.load', () => { localizeLabels(gl); applyIllustratedTheme(gl); });
+          gl.once('load', () => { vectorReady = true; applyIllustratedTheme(gl); if (state.map && state.map.setLandmarks) state.map.setLandmarks(state.all); });
+          gl.on('style.load', () => { applyIllustratedTheme(gl); });
+          if (window.TofuMapArt) window.TofuMapArt.install(gl);
           gl.on('error', (e) => {
-            if (vectorReady) return;
-            console.warn('ベクター地図の読み込みに失敗。概略イラスト地図に切り替えます', e && e.error);
+            if (vectorReady || (e && e.sourceId)) return;
+            console.warn('詳細地図を読み込めないため、地理院地図に切り替えます', e && e.error);
             vectorReady = true;
             try { map.removeLayer(vector); } catch (err) { /* noop */ }
-            if (!map.hasLayer(illustrated)) illustrated.addTo(map);
+            if (!map.hasLayer(gsi)) gsi.addTo(map);
           });
         });
       } catch (e) { console.warn('ベクター地図を初期化できません', e); vector = null; }
     }
     if (vector) bases['イラスト地図（OpenFreeMap）'] = vector;
-    bases['概略イラスト地図'] = illustrated;
     bases['淡色地図（地理院）'] = gsi; bases['OpenStreetMap'] = osm; bases['空中写真（地理院）'] = photo;
-    const first = CFG.BASEMAP === 'osm' ? osm : CFG.BASEMAP === 'gsi' ? gsi : (vector || illustrated);
-    try { first.addTo(map); } catch (e) { console.warn('ベースマップの追加に失敗。概略イラスト地図を使います', e); illustrated.addTo(map); }
+    const first = CFG.BASEMAP === 'osm' ? osm : CFG.BASEMAP === 'gsi' ? gsi : (vector || gsi);
+    try { first.addTo(map); } catch (e) { console.warn('詳細地図を初期化できないため、地理院地図を使います', e); if (vector && map.hasLayer(vector)) map.removeLayer(vector); gsi.addTo(map); }
     L.control.layers(bases, null, { position: 'topleft' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     L.control.scale({ imperial: false, position: 'bottomright' }).addTo(map);
-    const layer = L.layerGroup().addTo(map);
+    const clustered = typeof L.markerClusterGroup === 'function';
+    const layer = clustered ? L.markerClusterGroup({
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      spiderfyOnMaxZoom: true,
+      spiderfyDistanceMultiplier: 1.25,
+      removeOutsideVisibleBounds: true,
+      maxClusterRadius: (zoom) => zoom >= 17 ? 34 : zoom >= 16 ? 42 : 54,
+      iconCreateFunction: (cluster) => {
+        const count = cluster.getChildCount();
+        const size = count >= 30 ? 52 : count >= 10 ? 46 : 40;
+        return L.divIcon({
+          className: 'tofu-cluster',
+          html: '<span aria-hidden="true">' + count + '</span><span class="sr-only">近くに' + count + '件</span>',
+          iconSize: [size, size],
+          // 件数丸を少し左上へ。重なる建物は実座標から動かさず見えるようにする。
+          iconAnchor: count >= 30 ? [size / 2 + 24, size / 2 + 10] : [size / 2 + 14, size / 2 + 8],
+        });
+      },
+      spiderLegPolylineOptions: { weight: 2, color: '#b98374', opacity: 0.65 },
+    }).addTo(map) : L.layerGroup().addTo(map);
+    if (clustered) map.on('clusterclick', closeMapCard);
     let me = null;
     const divIcon = (html) => L.divIcon({ className: 'pin-icon', iconSize: [42, 48], iconAnchor: [21, 45], tooltipAnchor: [10, -18], html });
     return {
       engine: 'leaflet',
+      clustered,
+      setLandmarks: (places) => {
+        const gl = vector && vector.getMaplibreMap();
+        if (gl && window.TofuMapArt) window.TofuMapArt.update(gl, places);
+        const source = gl && gl.getSource('local-baths');
+        if (source) source.setData({ type: 'FeatureCollection', features: places.filter(p => p.category === 'onsen' && !p.name.includes('シーボルト') && hasGeo(p)).map(p => ({
+          type: 'Feature', geometry: { type: 'Point', coordinates: [p.lng, p.lat] }, properties: { name: p.name.replace('嬉野温泉公衆浴場 ', '').replace(/（.*）$/, '') },
+        })) });
+      },
       setView: (lat, lng, zoom) => map.setView([lat, lng], zoom == null ? map.getZoom() : zoom),
       panTo: (lat, lng) => map.panTo([lat, lng]),
       getCenter: () => { const c = map.getCenter(); return { lat: c.lat, lng: c.lng }; },
@@ -575,6 +612,9 @@
         me = L.marker([lat, lng], { icon: L.divIcon({ className: 'pin-icon', html: '<div class="me-dot"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }), interactive: false }).addTo(map);
       },
       invalidateSize: () => map.invalidateSize(),
+      panForSheet: (lat, lng, height) => map.panInside([lat, lng], {
+        paddingTopLeft: [24, 82], paddingBottomRight: [24, Math.max(96, (height || 0) + 20)], animate: true,
+      }),
       setCursor: (css) => { $('#map').style.cursor = css || ''; },
       setTheme: () => { if (vector && vector.getMaplibreMap) applyIllustratedTheme(vector.getMaplibreMap()); },
       onMoveEnd: (fn) => map.on('moveend', fn),
@@ -592,26 +632,33 @@
     const dark = isDarkTheme();
     const colors = dark ? {
       background: '#211c1d', residential: '#2c2527', wood: '#26352f', grass: '#29342e', park: '#2c3b33', water: '#24434b', waterway: '#3e6871',
-      rail: '#6e6262', roadCasing: '#483b3d', motorway: '#704c49', primary: '#684845', secondary: '#5a4241', road: '#403638', building: '#3a3032', buildingLine: '#4b3d3f',
+      rail: '#a99b91', roadCasing: '#8b7667', motorway: '#94685c', primary: '#987968', secondary: '#7d6c5b', road: '#665d55', building: '#3a3032', buildingLine: '#4b3d3f',
       boundary: '#69585a', pencil: '#967a75', waterText: '#87b5bd', waterHalo: '#23383d', roadText: '#c7b8b5', roadHalo: '#2a2224', minorText: '#aa9a98', placeText: '#dbcac7', placeHalo: '#211c1d',
     } : {
-      background: '#f8edda', residential: '#f4e3df', wood: '#cfdcc8', grass: '#e0e8d5', park: '#d7e3d0', water: '#cae4e9', waterway: '#acd3db',
-      rail: '#baaead', roadCasing: '#d8bfb4', motorway: '#eab6aa', primary: '#f0c9bd', secondary: '#f3dbd3', road: '#fff8ec', building: '#ead4ce', buildingLine: '#cfb5ad',
+      background: '#f8edda', residential: '#f3e9d8', wood: '#bfd1ae', grass: '#dbe5c3', park: '#c8dba9', water: '#b3dce5', waterway: '#92c6d5',
+      rail: '#857b6b', roadCasing: '#bfa78b', motorway: '#df9c89', primary: '#e8b7a3', secondary: '#f0d1b5', road: '#fffdf1', building: '#e4d5c0', buildingLine: '#c1af96',
       boundary: '#c9b8b4', pencil: '#b9998d', waterText: '#729ca5', waterHalo: '#edf7f8', roadText: '#8a7976', roadHalo: '#fff8ec', minorText: '#9c8e8a', placeText: '#6f5d58', placeHalo: '#f8edda',
     };
     const paint = (id, prop, value) => { if (gl.getLayer(id)) gl.setPaintProperty(id, prop, value); };
     paint('background', 'background-color', colors.background);
     paint('landuse-residential', 'fill-color', colors.residential); paint('landcover-wood', 'fill-color', colors.wood);
     paint('landcover-grass', 'fill-color', colors.grass); paint('park', 'fill-color', colors.park);
+    ['landcover-wood', 'landcover-grass', 'park'].forEach(id => paint(id, 'fill-outline-color', dark ? '#445849' : '#b6c49a'));
+    paint('water', 'fill-outline-color', dark ? '#456875' : '#91bdca');
     paint('water', 'fill-color', colors.water); paint('waterway', 'line-color', colors.waterway); paint('rail', 'line-color', colors.rail);
     paint('road-casing', 'line-color', colors.roadCasing);
     paint('roads', 'line-color', ['match', ['get', 'class'], ['motorway', 'trunk'], colors.motorway, 'primary', colors.primary, ['secondary', 'tertiary'], colors.secondary, colors.road]);
+    paint('bridges', 'line-color', ['match', ['get', 'class'], ['motorway', 'trunk'], colors.motorway, 'primary', colors.primary, ['secondary', 'tertiary'], colors.secondary, colors.road]);
     paint('roads-pencil', 'line-color', colors.pencil);
     paint('buildings', 'fill-color', colors.building); paint('buildings', 'fill-outline-color', colors.buildingLine); paint('boundaries', 'line-color', colors.boundary);
     paint('water-labels', 'text-color', colors.waterText); paint('water-labels', 'text-halo-color', colors.waterHalo);
     paint('road-labels-major', 'text-color', colors.roadText); paint('road-labels-major', 'text-halo-color', colors.roadHalo);
     paint('road-labels-minor', 'text-color', colors.minorText); paint('road-labels-minor', 'text-halo-color', colors.roadHalo);
     paint('place-labels', 'text-color', colors.placeText); paint('place-labels', 'text-halo-color', colors.placeHalo);
+    ['park-labels', 'landmark-labels', 'local-bath-landmarks', 'amenity-labels', 'bus-labels', 'bridge-labels'].forEach(id => {
+      paint(id, 'text-color', dark ? '#e5d9b9' : '#65594c'); paint(id, 'text-halo-color', colors.placeHalo);
+    });
+    paint('waterway-labels', 'text-color', colors.waterText); paint('waterway-labels', 'text-halo-color', colors.waterHalo);
   }
 
   // ベクター地図のラベルを日本語優先にする（name:ja → name）
@@ -675,11 +722,15 @@
       '<a class="btn" href="' + esc(gmapsUrl(p)) + '" target="_blank" rel="noopener noreferrer">Google マップ</a>' +
       '<a class="btn" href="' + esc(appleMapsUrl(p)) + '" target="_blank" rel="noopener noreferrer">Apple マップ</a></div>';
     card.hidden = false;
+    if (matchMedia('(max-width: 900px)').matches && state.map && state.map.panForSheet && hasGeo(p)) {
+      requestAnimationFrame(() => state.map.panForSheet(p.lat, p.lng, card.offsetHeight + 70));
+    }
     $('.map-card-close', card).addEventListener('click', closeMapCard);
     $('[data-map-card-detail]', card).addEventListener('click', () => selectPlace(p.id, { pan: false, scroll: false }));
   }
 
   function renderMarkers() {
+    if (state.map && state.map.setLandmarks) state.map.setLandmarks(state.all);
     if (!state.map) return;
     state.map.clearMarkers();
     state.markers = {};
@@ -694,7 +745,7 @@
       if (!hasGeo(p)) return;
       const k = p.lat.toFixed(5) + ',' + p.lng.toFixed(5);
       const g = { n: groups[k].length, i: groups[k].indexOf(p.id) };
-      const ll = displayLatLng(p, g);
+      const ll = state.map.clustered ? [p.lat, p.lng] : displayLatLng(p, g);
       const selected = p.id === state.selectedId || p.id === state.mapCardId;
       state.markers[p.id] = state.map.addMarker({
         lat: ll[0], lng: ll[1], html: pinHtml(p, selected), zIndex: selected ? 1000 : 0,
@@ -870,7 +921,7 @@
     el.innerHTML = CAT_ORDER.filter((c) => state.all.some((p) => p.category === c)).map((c) => {
       const off = state.filters.cats.size && !state.filters.cats.has(c);
       return '<div class="legend-item' + (off ? ' off' : '') + '" data-cat="' + c + '" style="--c:' + catVar(c) + '" role="button" tabindex="0"><span class="legend-icon">' + I.icon(c, 'legend-illust') + '</span>' + esc(catLabel(c)) + ' <span class="muted">' + (counts[c] || 0) + '</span></div>';
-    }).join('') + '<div class="legend-note">白抜き＝提供未確認／点線＝位置は概略</div>';
+    }).join('') + '<div class="legend-note">白抜き＝提供未確認／点線＝位置は概略<details><summary>ランドマークの位置・出典</summary>絵の中心が実際の座標<br><a href="https://www.city.ureshino.lg.jp/shisei/soshiki/_24965.html" target="_blank" rel="noopener">市役所</a>・<a href="https://www.city.ureshino.lg.jp/kanko/siebold.html" target="_blank" rel="noopener">浴場</a>・<a href="https://toyotamahime-jinja.or.jp/sanpai.php" target="_blank" rel="noopener">神社</a>・<a href="https://spa-u.net/facility/2016/01/org-entry-209.php" target="_blank" rel="noopener">お茶</a>・<a href="https://www.hizenyumekaidou.info/access/" target="_blank" rel="noopener">忍者村</a>・<a href="https://publicspace-db.pref.saga.lg.jp/publicspace/k0002/" target="_blank" rel="noopener">広場</a>・<a href="https://www.jrkyushu.co.jp/railway/station/1227475_1601.html" target="_blank" rel="noopener">駅</a></details></div>';
   }
 
   // ------------------------------------------------------------------ 一覧
@@ -1272,7 +1323,7 @@
       const chip = $('#cat-chips [data-cat="' + c + '"]'); if (chip) { chip.classList.toggle('active', state.filters.cats.has(c)); chip.setAttribute('aria-pressed', state.filters.cats.has(c)); }
       applyFilters({});
     });
-    $('#legend').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.target.click(); } });
+    $('#legend').addEventListener('keydown', (e) => { if (e.target.closest('[data-cat]') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.target.click(); } });
     $('#tofu-select').addEventListener('change', (e) => { state.filters.tofu = e.target.value; applyFilters({}); });
     $('#price-range').addEventListener('input', (e) => { state.filters.price = Number(e.target.value); updatePriceOutput(); applyFilters({}); });
     $('#chk-unverified').addEventListener('change', (e) => { state.filters.unverified = e.target.checked; applyFilters({}); });
@@ -1282,7 +1333,7 @@
     $('#list').addEventListener('click', (e) => { if (e.target.closest('a')) return; const card = e.target.closest('.card'); if (card) selectPlace(card.dataset.id, { pan: true, scroll: false }); });
     $('#list').addEventListener('keydown', (e) => { const card = e.target.closest('.card'); if (card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selectPlace(card.dataset.id, { pan: true, scroll: false }); } });
     $('#btn-locate').addEventListener('click', locateMe);
-    $('#btn-fit').addEventListener('click', () => fitAll({ core: false }));
+    $('#btn-fit').addEventListener('click', () => { closeMapCard(); state.map.setView(MAP_OVERVIEW_CENTER[0], MAP_OVERVIEW_CENTER[1], MAP_MIN_ZOOM); });
     $('#btn-map-illustrated').addEventListener('click', () => switchMapEngine('illustrated'));
     $('#btn-map-google').addEventListener('click', () => switchMapEngine('google'));
     $('#btn-contribute').addEventListener('click', () => openContribute('new', null));
@@ -1322,7 +1373,7 @@
       document.body.classList.toggle('view-map', t.dataset.view === 'map');
       document.body.classList.toggle('view-list', t.dataset.view === 'list');
       if (t.dataset.view === 'media') { $('#media').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-      $('#explore').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      (t.dataset.view === 'map' ? $('.layout') : $('#explore')).scrollIntoView({ behavior: 'smooth', block: 'start' });
       setTimeout(() => state.map.invalidateSize(), 50);
     }));
     window.addEventListener('hashchange', () => {

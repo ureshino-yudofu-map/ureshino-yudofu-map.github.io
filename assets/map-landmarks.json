@@ -1,0 +1,36 @@
+{
+  "version": "2026-10-23",
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [129.986866, 33.101276] },
+      "properties": { "name": "嬉野市役所（新庁舎）", "art": "cityhall", "source_url": "https://www.city.ureshino.lg.jp/shisei/soshiki/_24965.html", "source_note": "公式庁舎案内の地図座標。2026年10月の新庁舎。" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [129.98269200325012, 33.09727160183013] },
+      "properties": { "name": "豊玉姫神社・白なまず", "art": "namazu", "source_url": "https://toyotamahime-jinja.or.jp/sanpai.php", "source_note": "座標: OpenStreetMap / OpenFreeMap。白なまず: 添付の現地写真を参考。" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [129.968292, 33.079488] },
+      "properties": { "name": "うれしのお茶ちゃ村", "art": "ochacha", "source_url": "https://spa-u.net/facility/2016/01/org-entry-209.php", "source_note": "住所: 嬉野温泉観光協会。座標: 現地案内地図。外観: 添付写真を参考。" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [129.9912809, 33.095641] },
+      "properties": { "name": "元祖忍者村 肥前夢街道", "art": "ninja", "source_url": "https://www.hizenyumekaidou.info/access/", "source_note": "住所: 施設公式。座標: OpenStreetMap施設中心。忍者: 添付写真を参考。" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [129.9875228672859, 33.097702335348245] },
+      "properties": { "name": "湯っつら広場", "art": "yuttsura", "source_url": "https://publicspace-db.pref.saga.lg.jp/publicspace/k0002/", "source_note": "外観: 佐賀県公共空間データベース・添付の現地写真。座標: 現地確認情報。" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [129.9989727, 33.1066113] },
+      "properties": { "name": "嬉野温泉駅", "art": "station", "source_url": "https://www.jrkyushu.co.jp/railway/station/1227475_1601.html", "source_note": "施設: JR九州。座標: OpenStreetMap駅舎中心。外観: 添付写真を参考。" }
+    }
+  ]
+}
