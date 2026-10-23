@@ -606,10 +606,10 @@ h1, h2 { font-family: var(--font-title); font-weight: 700; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .map-wrap::after { opacity: .08; mix-blend-mode: screen; }
 }
-.leaflet-image-layer { filter: saturate(.9) contrast(.98); }
-:root[data-theme="dark"] .leaflet-image-layer { filter: brightness(.48) saturate(.72) sepia(.14); }
+img.leaflet-image-layer { filter: saturate(.9) contrast(.98); }
+:root[data-theme="dark"] img.leaflet-image-layer { filter: brightness(.48) saturate(.72) sepia(.14); }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .leaflet-image-layer { filter: brightness(.48) saturate(.72) sepia(.14); }
+  :root:not([data-theme="light"]) img.leaflet-image-layer { filter: brightness(.48) saturate(.72) sepia(.14); }
 }
 .map-mode-switch button { min-width: 0; padding: 7px 13px; border: 0; border-radius: 999px; background: transparent; color: var(--fg-muted); cursor: pointer; font-size: .76rem; font-weight: 600; white-space: nowrap; }
 .map-mode-switch button.active { background: var(--accent); color: var(--accent-fg); box-shadow: 0 4px 13px color-mix(in srgb, var(--accent) 22%, transparent); }

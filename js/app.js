@@ -512,10 +512,6 @@
   // ---- OpenFreeMap（MapLibre を Leaflet の共通操作層に載せる） -----------------------------
   function createLeafletMap() {
     const map = L.map('map', { zoomControl: false, center: CFG.MAP_CENTER, zoom: CFG.MAP_ZOOM, maxZoom: 19, preferCanvas: false });
-    const illustrated = L.imageOverlay('assets/ureshino-illustrated-map.svg?v=2.0.0', [[33.065, 129.950], [33.135, 130.045]], {
-      opacity: 1, interactive: false,
-      attribution: '<span>概略イラスト</span> · <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>',
-    });
     const gsi = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
       maxZoom: 18, attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>',
     });
@@ -525,37 +521,37 @@
     const photo = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
       maxZoom: 18, attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル（写真）</a>',
     });
-    // ベクター地図（OpenFreeMap: 鍵・費用不要）。WebGL 非対応時も通常の地図へ戻さず、概略イラストを表示する。
+    // 実際の道路形状を全ズームで使う。WebGL非対応時も位置を読める地理院地図へ。
     const bases = {};
     let vector = null;
-    const vectorSupported = typeof maplibregl !== 'undefined' && typeof maplibregl.supported === 'function' && maplibregl.supported();
+    const vectorSupported = typeof maplibregl !== 'undefined' && typeof maplibregl.Map === 'function';
     if (CFG.BASEMAP === 'vector' && typeof L.maplibreGL === 'function' && vectorSupported) {
       try {
         vector = L.maplibreGL({
-          style: 'assets/map-style.json?v=2.0.0',
+          style: 'assets/map-style.json?v=3.0.0',
           attribution: '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>',
         });
         let vectorReady = false;
         vector.on('add', () => {
           const gl = vector.getMaplibreMap();
           if (!gl) return;
-          gl.once('load', () => { vectorReady = true; applyIllustratedTheme(gl); });
-          gl.on('style.load', () => { localizeLabels(gl); applyIllustratedTheme(gl); });
+          gl.once('load', () => { vectorReady = true; applyIllustratedTheme(gl); if (state.map && state.map.setLandmarks) state.map.setLandmarks(state.all); });
+          gl.on('style.load', () => { applyIllustratedTheme(gl); });
+          if (window.TofuMapArt) window.TofuMapArt.install(gl);
           gl.on('error', (e) => {
-            if (vectorReady) return;
-            console.warn('ベクター地図の読み込みに失敗。概略イラスト地図に切り替えます', e && e.error);
+            if (vectorReady || (e && e.sourceId)) return;
+            console.warn('詳細地図を読み込めないため、地理院地図に切り替えます', e && e.error);
             vectorReady = true;
             try { map.removeLayer(vector); } catch (err) { /* noop */ }
-            if (!map.hasLayer(illustrated)) illustrated.addTo(map);
+            if (!map.hasLayer(gsi)) gsi.addTo(map);
           });
         });
       } catch (e) { console.warn('ベクター地図を初期化できません', e); vector = null; }
     }
     if (vector) bases['イラスト地図（OpenFreeMap）'] = vector;
-    bases['概略イラスト地図'] = illustrated;
     bases['淡色地図（地理院）'] = gsi; bases['OpenStreetMap'] = osm; bases['空中写真（地理院）'] = photo;
-    const first = CFG.BASEMAP === 'osm' ? osm : CFG.BASEMAP === 'gsi' ? gsi : (vector || illustrated);
-    try { first.addTo(map); } catch (e) { console.warn('ベースマップの追加に失敗。概略イラスト地図を使います', e); illustrated.addTo(map); }
+    const first = CFG.BASEMAP === 'osm' ? osm : CFG.BASEMAP === 'gsi' ? gsi : (vector || gsi);
+    try { first.addTo(map); } catch (e) { console.warn('詳細地図を初期化できないため、地理院地図を使います', e); if (vector && map.hasLayer(vector)) map.removeLayer(vector); gsi.addTo(map); }
     L.control.layers(bases, null, { position: 'topleft' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     L.control.scale({ imperial: false, position: 'bottomright' }).addTo(map);
@@ -584,6 +580,13 @@
     return {
       engine: 'leaflet',
       clustered,
+      setLandmarks: (places) => {
+        const gl = vector && vector.getMaplibreMap();
+        const source = gl && gl.getSource('local-baths');
+        if (source) source.setData({ type: 'FeatureCollection', features: places.filter(p => p.category === 'onsen' && hasGeo(p)).map(p => ({
+          type: 'Feature', geometry: { type: 'Point', coordinates: [p.lng, p.lat] }, properties: { name: p.name.replace('嬉野温泉公衆浴場 ', '').replace(/（.*）$/, '') },
+        })) });
+      },
       setView: (lat, lng, zoom) => map.setView([lat, lng], zoom == null ? map.getZoom() : zoom),
       panTo: (lat, lng) => map.panTo([lat, lng]),
       getCenter: () => { const c = map.getCenter(); return { lat: c.lat, lng: c.lng }; },
@@ -622,26 +625,33 @@
     const dark = isDarkTheme();
     const colors = dark ? {
       background: '#211c1d', residential: '#2c2527', wood: '#26352f', grass: '#29342e', park: '#2c3b33', water: '#24434b', waterway: '#3e6871',
-      rail: '#6e6262', roadCasing: '#483b3d', motorway: '#704c49', primary: '#684845', secondary: '#5a4241', road: '#403638', building: '#3a3032', buildingLine: '#4b3d3f',
+      rail: '#a99b91', roadCasing: '#8b7667', motorway: '#94685c', primary: '#987968', secondary: '#7d6c5b', road: '#665d55', building: '#3a3032', buildingLine: '#4b3d3f',
       boundary: '#69585a', pencil: '#967a75', waterText: '#87b5bd', waterHalo: '#23383d', roadText: '#c7b8b5', roadHalo: '#2a2224', minorText: '#aa9a98', placeText: '#dbcac7', placeHalo: '#211c1d',
     } : {
-      background: '#f8edda', residential: '#f4e3df', wood: '#cfdcc8', grass: '#e0e8d5', park: '#d7e3d0', water: '#cae4e9', waterway: '#acd3db',
-      rail: '#baaead', roadCasing: '#d8bfb4', motorway: '#eab6aa', primary: '#f0c9bd', secondary: '#f3dbd3', road: '#fff8ec', building: '#ead4ce', buildingLine: '#cfb5ad',
+      background: '#f8edda', residential: '#f3e9d8', wood: '#bfd1ae', grass: '#dbe5c3', park: '#c8dba9', water: '#b3dce5', waterway: '#92c6d5',
+      rail: '#857b6b', roadCasing: '#bfa78b', motorway: '#df9c89', primary: '#e8b7a3', secondary: '#f0d1b5', road: '#fffdf1', building: '#e4d5c0', buildingLine: '#c1af96',
       boundary: '#c9b8b4', pencil: '#b9998d', waterText: '#729ca5', waterHalo: '#edf7f8', roadText: '#8a7976', roadHalo: '#fff8ec', minorText: '#9c8e8a', placeText: '#6f5d58', placeHalo: '#f8edda',
     };
     const paint = (id, prop, value) => { if (gl.getLayer(id)) gl.setPaintProperty(id, prop, value); };
     paint('background', 'background-color', colors.background);
     paint('landuse-residential', 'fill-color', colors.residential); paint('landcover-wood', 'fill-color', colors.wood);
     paint('landcover-grass', 'fill-color', colors.grass); paint('park', 'fill-color', colors.park);
+    ['landcover-wood', 'landcover-grass', 'park'].forEach(id => paint(id, 'fill-outline-color', dark ? '#445849' : '#b6c49a'));
+    paint('water', 'fill-outline-color', dark ? '#456875' : '#91bdca');
     paint('water', 'fill-color', colors.water); paint('waterway', 'line-color', colors.waterway); paint('rail', 'line-color', colors.rail);
     paint('road-casing', 'line-color', colors.roadCasing);
     paint('roads', 'line-color', ['match', ['get', 'class'], ['motorway', 'trunk'], colors.motorway, 'primary', colors.primary, ['secondary', 'tertiary'], colors.secondary, colors.road]);
+    paint('bridges', 'line-color', ['match', ['get', 'class'], ['motorway', 'trunk'], colors.motorway, 'primary', colors.primary, ['secondary', 'tertiary'], colors.secondary, colors.road]);
     paint('roads-pencil', 'line-color', colors.pencil);
     paint('buildings', 'fill-color', colors.building); paint('buildings', 'fill-outline-color', colors.buildingLine); paint('boundaries', 'line-color', colors.boundary);
     paint('water-labels', 'text-color', colors.waterText); paint('water-labels', 'text-halo-color', colors.waterHalo);
     paint('road-labels-major', 'text-color', colors.roadText); paint('road-labels-major', 'text-halo-color', colors.roadHalo);
     paint('road-labels-minor', 'text-color', colors.minorText); paint('road-labels-minor', 'text-halo-color', colors.roadHalo);
     paint('place-labels', 'text-color', colors.placeText); paint('place-labels', 'text-halo-color', colors.placeHalo);
+    ['park-labels', 'landmark-labels', 'local-bath-landmarks', 'amenity-labels', 'bus-labels', 'bridge-labels'].forEach(id => {
+      paint(id, 'text-color', dark ? '#e5d9b9' : '#65594c'); paint(id, 'text-halo-color', colors.placeHalo);
+    });
+    paint('waterway-labels', 'text-color', colors.waterText); paint('waterway-labels', 'text-halo-color', colors.waterHalo);
   }
 
   // ベクター地図のラベルを日本語優先にする（name:ja → name）
@@ -713,6 +723,7 @@
   }
 
   function renderMarkers() {
+    if (state.map && state.map.setLandmarks) state.map.setLandmarks(state.all);
     if (!state.map) return;
     state.map.clearMarkers();
     state.markers = {};
