@@ -1373,7 +1373,7 @@
       document.body.classList.toggle('view-map', t.dataset.view === 'map');
       document.body.classList.toggle('view-list', t.dataset.view === 'list');
       if (t.dataset.view === 'media') { $('#media').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-      (t.dataset.view === 'map' ? $('.layout') : $('#explore')).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      (t.dataset.view === 'map' ? $('.map-wrap') : $('.sidebar')).scrollIntoView({ behavior: 'smooth', block: 'start' });
       setTimeout(() => state.map.invalidateSize(), 50);
     }));
     window.addEventListener('hashchange', () => {
