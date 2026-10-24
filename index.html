@@ -47,7 +47,10 @@
 
   <main>
     <section class="home-hero" id="top" aria-labelledby="hero-title">
-      <img class="hero-photo" src="assets/hero-yudofu.webp" alt="湯気が立つ湯どうふのイメージ写真" width="1536" height="1024" fetchpriority="high">
+      <picture class="hero-picture">
+        <source media="(max-width: 900px)" srcset="assets/hero-yudofu-mobile.webp">
+        <img class="hero-photo" src="assets/hero-yudofu.webp" alt="白いスープで豆腐がとろけ、箸で薄い湯葉をすくう温泉湯どうふのイメージ" width="1440" height="960" fetchpriority="high">
+      </picture>
       <div class="hero-photo-gallery" id="hero-photo-gallery" aria-label="お客さんが撮ったお店の写真" aria-live="polite" hidden></div>
       <span class="image-note">イメージ</span>
       <div class="hero-shade" aria-hidden="true"></div>
@@ -64,42 +67,7 @@
         <p class="hero-media-label">現地の写真・動画</p>
         <div id="hero-media"><p class="muted">読み込み中…</p></div>
       </aside>
-      <a class="scroll-cue" href="#journeys" aria-label="楽しみ方へ">SCROLL <span>↓</span></a>
-    </section>
-
-    <section class="taste-intro section" aria-labelledby="taste-intro-title">
-      <div class="taste-intro-heading">
-        <p class="eyebrow">A GENTLE TASTE OF URESHINO</p>
-        <h2 id="taste-intro-title">湯上がりのように、<br>ほっとほどける味。</h2>
-        <p>温泉のまちで育まれた、やさしく奥深いごちそう。気になる楽しみ方から、今日の一椀を見つけてください。</p>
-      </div>
-      <div class="taste-intro-list">
-        <article><span>01</span><h3>美肌の湯のまちで</h3><p>「美肌の湯」として親しまれる嬉野温泉。湯上がりの街歩きと一緒に味わいたい一椀です。</p></article>
-        <article><span>02</span><h3>とろける豆腐、白いスープ</h3><p>温泉調理水で豆腐がほどけ、スープはまろやかな白色に。口あたりの変化も楽しみのひとつ。</p></article>
-        <article><span>03</span><h3>野菜たっぷり、軽やかに</h3><p>季節の野菜と一緒に楽しめるお店も。旅先でヘルシーに味わいたい日にうれしい選択肢です。</p></article>
-        <article><span>04</span><h3>湯葉まで、ゆっくり</h3><p>食べ進めるうちに現れる湯葉や、最後の〆まで。一つの鍋にいくつもの楽しみがあります。</p></article>
-      </div>
-    </section>
-
-    <section class="journeys section" id="journeys" aria-labelledby="journeys-title">
-      <div class="section-heading">
-        <p class="eyebrow">CHOOSE YOUR MOMENT</p>
-        <h2 id="journeys-title">今日は、どんな湯どうふにする？</h2>
-      </div>
-      <div class="journey-grid">
-        <button class="journey-card" type="button" data-quick-svc="ランチ"><span>昼ごはんに</span><strong>ランチ</strong><small>気軽な一椀を探す →</small></button>
-        <button class="journey-card" type="button" data-quick-cat="hotel"><span>旅の楽しみに</span><strong>旅館・ホテル</strong><small>宿で味わえる場所 →</small></button>
-        <button class="journey-card" type="button" data-quick-svc="テイクアウト"><span>おうちでも</span><strong>持ち帰り</strong><small>買って帰れる場所 →</small></button>
-        <button class="journey-card" type="button" data-quick-svc="日帰り"><span>湯上がりに</span><strong>日帰り</strong><small>立ち寄れる場所 →</small></button>
-      </div>
-    </section>
-
-    <section class="media-section section" id="media" aria-labelledby="media-title">
-      <div class="section-heading heading-row">
-        <div><p class="eyebrow">FROM URESHINO</p><h2 id="media-title">湯どうふの風景</h2></div>
-        <p>公式・公開投稿を出典リンクつきで紹介します。埋め込みは画面に入ってから読み込みます。</p>
-      </div>
-      <div class="media-gallery" id="media-gallery" aria-live="polite"><p class="muted">写真・動画を読み込み中…</p></div>
+      <a class="scroll-cue" href="#explore" aria-label="湯どうふを探すへ">SCROLL <span>↓</span></a>
     </section>
 
     <section class="explore-section" id="explore" aria-labelledby="explore-title">
@@ -179,6 +147,53 @@
           <div class="detail-inner" id="detail-inner"></div>
         </aside>
       </div>
+    </section>
+
+    <section class="journeys section" id="journeys" aria-labelledby="journeys-title">
+      <div class="section-heading">
+        <p class="eyebrow">CHOOSE YOUR MOMENT</p>
+        <h2 id="journeys-title"><span class="heading-line">今日は、</span><span class="heading-line heading-line-wide">どんな湯どうふにする？</span></h2>
+      </div>
+      <div class="journey-grid">
+        <button class="journey-card" type="button" data-quick-svc="ランチ">
+          <span class="journey-visual"><img src="assets/top-visual/journey-lunch.webp" alt="湯気の立つ湯どうふの昼食膳のイラスト" width="480" height="480" loading="lazy"><span class="generated-note">イメージ</span></span>
+          <span class="journey-copy"><span>昼ごはんに</span><strong>ランチ</strong><small>気軽な一椀を探す →</small></span>
+        </button>
+        <button class="journey-card" type="button" data-quick-cat="hotel">
+          <span class="journey-visual"><img src="assets/top-visual/journey-hotel.webp" alt="浴衣と旅館の朝食膳のイラスト" width="480" height="480" loading="lazy"><span class="generated-note">イメージ</span></span>
+          <span class="journey-copy"><span>旅の楽しみに</span><strong>旅館・ホテル</strong><small>宿で味わえる場所 →</small></span>
+        </button>
+        <button class="journey-card" type="button" data-quick-svc="テイクアウト">
+          <span class="journey-visual"><img src="assets/top-visual/journey-takeout.webp" alt="豆腐と調理水を入れた持ち帰り袋のイラスト" width="480" height="480" loading="lazy"><span class="generated-note">イメージ</span></span>
+          <span class="journey-copy"><span>おうちでも</span><strong>持ち帰り</strong><small>買って帰れる場所 →</small></span>
+        </button>
+        <button class="journey-card" type="button" data-quick-svc="日帰り">
+          <span class="journey-visual"><img src="assets/top-visual/journey-daytrip.webp" alt="温泉街の足湯のイラスト" width="420" height="420" loading="lazy"><span class="generated-note">イメージ</span></span>
+          <span class="journey-copy"><span>湯上がりに</span><strong>日帰り</strong><small>立ち寄れる場所 →</small></span>
+        </button>
+      </div>
+    </section>
+
+    <section class="taste-intro section" aria-labelledby="taste-intro-title">
+      <div class="taste-intro-heading">
+        <p class="eyebrow">A GENTLE TASTE OF URESHINO</p>
+        <h2 id="taste-intro-title">湯上がりのように、<br>ほっとほどける味。</h2>
+        <p>温泉のまちで育まれた、やさしく奥深いごちそう。気になる楽しみ方から、今日の一椀を見つけてください。</p>
+      </div>
+      <div class="taste-intro-list">
+        <article><figure class="taste-visual"><img src="assets/top-visual/taste-onsen.webp" alt="湯気が立つ温泉のイラスト" width="640" height="480" loading="lazy"><span class="generated-note">イメージ</span></figure><div class="taste-copy"><h3>美肌の湯のまちで</h3><p>「美肌の湯」として親しまれる嬉野温泉。湯上がりの街歩きと一緒に味わいたい一椀です。</p></div></article>
+        <article><figure class="taste-visual"><img src="assets/top-visual/taste-soup.webp" alt="白いスープととろける豆腐の土鍋のイラスト" width="640" height="480" loading="lazy"><span class="generated-note">イメージ</span></figure><div class="taste-copy"><h3>とろける豆腐、白いスープ</h3><p>温泉調理水で豆腐がほどけ、スープはまろやかな白色に。口あたりの変化も楽しみのひとつ。</p></div></article>
+        <article><figure class="taste-visual"><img src="assets/top-visual/taste-vegetables.webp" alt="野菜と豆腐を添えた湯どうふのイラスト" width="640" height="480" loading="lazy"><span class="generated-note">イメージ</span></figure><div class="taste-copy"><h3>野菜たっぷり、軽やかに</h3><p>季節の野菜と一緒に楽しめるお店も。旅先でヘルシーに味わいたい日にうれしい選択肢です。</p></div></article>
+        <article><figure class="taste-visual"><img src="assets/top-visual/taste-yuba.webp" alt="箸で薄い湯葉をすくうイラスト" width="640" height="480" loading="lazy"><span class="generated-note">イメージ</span></figure><div class="taste-copy"><h3>湯葉まで、ゆっくり</h3><p>食べ進めるうちに現れる湯葉や、最後の〆まで。一つの鍋にいくつもの楽しみがあります。</p></div></article>
+      </div>
+    </section>
+
+    <section class="media-section section" id="media" aria-labelledby="media-title">
+      <div class="section-heading heading-row">
+        <div><p class="eyebrow">FROM URESHINO</p><h2 id="media-title">湯どうふの風景</h2></div>
+        <p>公式・公開投稿を出典リンクつきで紹介します。埋め込みは画面に入ってから読み込みます。</p>
+      </div>
+      <div class="media-gallery" id="media-gallery" aria-live="polite"><p class="muted">写真・動画を読み込み中…</p></div>
     </section>
 
     <section class="about-section section" id="about" aria-labelledby="about-title">
